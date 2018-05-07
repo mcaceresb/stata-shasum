@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 0.1.1 07May2018}{...}
+{* *! version 0.1.2 07May2018}{...}
 {viewerdialog shasum "dialog shasum"}{...}
 {vieweralsosee "[R] shasum" "mansection R shasum"}{...}
 {viewerjumpto "Syntax" "shasum##syntax"}{...}

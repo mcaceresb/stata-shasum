@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+## shasum-0.1.2 (2018-05-07)
+
+### Features
+
+- Added OSX version
+
 ## shasum-0.1.1 (2018-05-07)
 
 ### Bug fixes

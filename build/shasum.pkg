@@ -1,4 +1,4 @@
-v 0.1.1
+v 0.1.2
 d
 d 'SHASUM': Wrapper for various cryptographic hashes from OpenSSL
 d
@@ -30,3 +30,5 @@ f shasum_unix.plugin
 f env_set_unix.plugin
 f shasum_windows.plugin
 f env_set_windows.plugin
+f shasum_macosx.plugin
+f env_set_macosx.plugin
