@@ -1,4 +1,4 @@
-*! version 0.1.2020 07May2018 Mauricio Caceres Bravo, mauricio.caceres.bravo@gmail.com
+*! version 0.1.2 07May2018 Mauricio Caceres Bravo, mauricio.caceres.bravo@gmail.com
 *! Wrapper for OpenSSL's MD5, SHA1, SHA224, SHA256, SHA384, and SHA512
 
 capture program drop shasum
