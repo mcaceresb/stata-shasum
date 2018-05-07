@@ -1,10 +1,11 @@
 # ---------------------------------------------------------------------
 # OS parsing
 
+INCLUDE=
 ifeq ($(OS),Windows_NT)
 	LIBSSL = libssl.a
 	LIBCRYPTO = libcrypto.a
-	LIBPATH = ./lib/openssl/
+	LIBPATH = ./lib/openssl/windows
 	SSL = -L$(LIBPATH) -l:$(LIBSSL) -l:$(LIBCRYPTO)
 	# SSL = -l:$(LIBSSL) -l:$(LIBCRYPTO)
 	#
@@ -18,7 +19,7 @@ else
 	ifeq ($(UNAME_S),Linux)
 		LIBSSL = libssl.a
 		LIBCRYPTO = libcrypto.a
-		LIBPATH = ./lib/openssl/
+		LIBPATH = ./lib/openssl/unix
 		SSL = -L$(LIBPATH) -l:$(LIBSSL) -l:$(LIBCRYPTO)
 		# SSL = -l:$(LIBSSL) -l:$(LIBCRYPTO)
 		#
@@ -29,8 +30,8 @@ else
 	ifeq ($(UNAME_S),Darwin)
 		LIBSSL = libssl.a
 		LIBCRYPTO = libcrypto.a
-		LIBPATH = ./lib/openssl/
-		SSL = -L./$(LIBPATH) -l:$(LIBSSL) -l:$(LIBCRYPTO)
+		LIBPATH = ./lib/openssl/macosx
+		SSL = $(LIBPATH)/$(LIBSSL) $(LIBPATH)/$(LIBCRYPTO)
 		# SSL = -l:$(LIBSSL) -l:$(LIBCRYPTO)
 		#
 		OSFLAGS = -bundle -DSYSTEM=APPLEMAC
@@ -61,8 +62,8 @@ shasum: src/shasum.c src/spi/stplugin.c
 	mkdir -p ./build
 	mkdir -p ./lib/plugin
 	mkdir -p ./lib/openssl
-	$(GCC) $(CFLAGS) -o $(OUT)  src/spi/stplugin.c src/shasum.c $(SSL)
-	$(GCC) $(CFLAGS) -o $(OUTE) src/spi/stplugin.c src/env_set.c
+	$(GCC) $(CFLAGS) $(INCLUDE) -o $(OUT)  src/spi/stplugin.c src/shasum.c $(SSL)
+	$(GCC) $(CFLAGS) $(INCLUDE) -o $(OUTE) src/spi/stplugin.c src/env_set.c
 	cp build/*plugin lib/plugin/
 
 .PHONY: clean
