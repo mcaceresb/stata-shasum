@@ -8,8 +8,7 @@ os:
 - linux
 - osx
 script:
-- make clean
-- ALL_CFLAGS+=-fPIC make
-- cd -
+- pwd
+- ls -lah
 - make clean && make
 - "./lib/travis_build_push.sh"

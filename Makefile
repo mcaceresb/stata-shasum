@@ -61,8 +61,6 @@ shasum: src/shasum.c src/spi/stplugin.c
 	mkdir -p ./build
 	mkdir -p ./lib/plugin
 	mkdir -p ./lib/openssl
-	locate libssl
-	locate libcrypto
 	$(GCC) $(CFLAGS) -o $(OUT)  src/spi/stplugin.c src/shasum.c $(SSL)
 	$(GCC) $(CFLAGS) -o $(OUTE) src/spi/stplugin.c src/env_set.c
 	cp build/*plugin lib/plugin/
