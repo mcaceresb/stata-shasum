@@ -1,0 +1,50 @@
+------------------------------------------------------------------------------------------------------------
+      name:  shasum_tests
+       log:  /Users/mc2926/stata-shasum/src/tests_macosx.log
+  log type:  text
+ opened on:   7 May 2018, 16:33:48
+
+
+Start:        16:33:48  7 May 2018
+OS:           MacOSX
+Machine Type: Macintosh (Intel 64-bit)
+
+Checking hashes for make not padded
+
+    shasum_test (passed): md5
+    shasum_test (passed): sha1
+    shasum_test (passed): sha224
+    shasum_test (passed): sha256
+    shasum_test (passed): sha384
+    shasum_test (passed): sha512
+
+Checking hashes for make make not padded
+
+    shasum_test (passed): md5
+    shasum_test (passed): sha1
+    shasum_test (passed): sha224
+    shasum_test (passed): sha256
+    shasum_test (passed): sha384
+    shasum_test (passed): sha512
+
+Checking hashes for make padded
+
+    shasum_test (passed): md5
+    shasum_test (passed): sha1
+    shasum_test (passed): sha224
+    shasum_test (passed): sha256
+    shasum_test (passed): sha384
+    shasum_test (passed): sha512
+
+Checking hashes for make make padded
+
+    shasum_test (passed): md5
+    shasum_test (passed): sha1
+    shasum_test (passed): sha224
+    shasum_test (passed): sha256
+    shasum_test (passed): sha384
+    shasum_test (passed): sha512
+
+. 
+end of do-file
+
