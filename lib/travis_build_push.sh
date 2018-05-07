@@ -1,4 +1,8 @@
 #!/bin/bash
+# ssh-keygen -t rsa -b 4096 -C "mauricio.caceres.bravo@gmail.com" -f lib/id_rsa_travis_shasum -N ''
+# travis encrypt-file lib/id_rsa_travis_shasum lib/id_rsa_travis_shasum.enc
+# https://github.com/alrra/travis-scripts/blob/master/docs/github-deploy-keys.md
+# https://docs.travis-ci.com/user/encrypting-files/
 
 if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
     REPO=`git config remote.origin.url`
@@ -18,15 +22,16 @@ if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
     echo "Committing OSX files."
     git commit -m "[Travis] Add plugin output for OSX build"
 
-    openssl aes-256-cbc -K $encrypted_e1735dcdef59_key -iv $encrypted_e1735dcdef59_iv -in lib/id_rsa_travis.enc -out lib/id_rsa_travis -d
-    chmod 600 lib/id_rsa_travis
+    openssl aes-256-cbc -K $encrypted_4ca9127173cc_key -iv $encrypted_4ca9127173cc_iv -in lib/id_rsa_travis_shasum.enc -out lib/id_rsa_travis_shasum -d
+
+    chmod 600 lib/id_rsa_travis_shasum
     eval `ssh-agent -s`
-    ssh-add lib/id_rsa_travis
+    ssh-add lib/id_rsa_travis_shasum
 
     echo "Pushing OSX files."
     git push -f ${SSH_REPO} osx
 
-    rm -f lib/id_rsa_travis
+    rm -f lib/id_rsa_travis_shasum
 
     echo "Done"
 fi
