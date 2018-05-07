@@ -1,0 +1,32 @@
+v 0.1.1
+d
+d 'SHASUM': Wrapper for various cryptographic hashes from OpenSSL
+d
+d This package provides a wrapper for the hash functions (checksums)
+d in the OpenSSL library, namely MD5, SHA1, SHA224, SHA256, SHA384, and
+d SHA512 using C plugins.
+d
+d KW: hash
+d KW: checksum
+d KW: shasum
+d KW: plugin
+d KW: MD5
+d KW: SHA1
+d KW: SHA224
+d KW: SHA256
+d KW: SHA384
+d KW: SHA512
+d
+d Requires: Stata version 13.1
+d
+d Author: Mauricio Caceres Bravo
+d Support: email mauricio.caceres.bravo@gmail.com
+d
+d Distribution-Date: 20180507
+d
+f shasum.ado
+f shasum.sthlp
+f shasum_unix.plugin
+f env_set_unix.plugin
+f shasum_windows.plugin
+f env_set_windows.plugin

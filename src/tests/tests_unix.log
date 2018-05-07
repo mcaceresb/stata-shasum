@@ -1,0 +1,49 @@
+------------------------------------------------------------------------------------------------------------
+      name:  shasum_tests
+       log:  /home/mauricio/Documents/projects/dev/code/archive/2018/stata-shasum/build/tests_unix.log
+  log type:  text
+ opened on:   7 May 2018, 14:44:30
+
+
+Start:        14:44:30  7 May 2018
+OS:           Unix
+Machine Type: PC (64-bit x86-64)
+
+Checking hashes for make not padded
+
+    shasum_test (passed): md5
+    shasum_test (passed): sha1
+    shasum_test (passed): sha224
+    shasum_test (passed): sha256
+    shasum_test (passed): sha384
+    shasum_test (passed): sha512
+
+Checking hashes for make make not padded
+
+    shasum_test (passed): md5
+    shasum_test (passed): sha1
+    shasum_test (passed): sha224
+    shasum_test (passed): sha256
+    shasum_test (passed): sha384
+    shasum_test (passed): sha512
+
+Checking hashes for make padded
+
+    shasum_test (passed): md5
+    shasum_test (passed): sha1
+    shasum_test (passed): sha224
+    shasum_test (passed): sha256
+    shasum_test (passed): sha384
+    shasum_test (passed): sha512
+
+Checking hashes for make make padded
+
+    shasum_test (passed): md5
+    shasum_test (passed): sha1
+    shasum_test (passed): sha224
+    shasum_test (passed): sha256
+    shasum_test (passed): sha384
+    shasum_test (passed): sha512
+
+. 
+end of do-file

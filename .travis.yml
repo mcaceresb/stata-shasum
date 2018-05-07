@@ -1,0 +1,16 @@
+language: c
+env:
+  global:
+  - OMP_NUM_THREADS=4
+compiler:
+- gcc
+os:
+- linux
+- osx
+script:
+- make clean
+- ALL_CFLAGS+=-fPIC make
+- cd -
+- make clean && make
+# - "./lib/travis_build_push.sh"
+ 
