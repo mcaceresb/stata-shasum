@@ -5,7 +5,7 @@
 * Created: Sun May  6 12:23:55 EDT 2018
 * Updated: Mon May  7 14:04:07 EDT 2018
 * Purpose: Unit tests for shasum
-* Version: 0.1.1
+* Version: 0.1.2
 * Manual:  help shasu
 
 version 13

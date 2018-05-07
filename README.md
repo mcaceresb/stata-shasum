@@ -7,7 +7,7 @@ This package provides a C wrapper for the hash functions (checksums)
 in the OpenSSL library, namely MD5, SHA1, SHA224, SHA256, SHA384, and
 SHA512.
 
-`version 0.1.1 07May2018`
+`version 0.1.2 07May2018`
 
 Installation
 ------------

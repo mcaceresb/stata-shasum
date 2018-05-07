@@ -5,7 +5,7 @@
  * Updated: Mon May  7 14:04:01 EDT 2018
  * Purpose: Stata plugin for fast hashing
  * Note:    See stata.com/plugins for more on Stata plugins
- * Version: 0.1.1
+ * Version: 0.1.2
  *********************************************************************/
 
 /**
