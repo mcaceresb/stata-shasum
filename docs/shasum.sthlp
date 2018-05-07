@@ -85,7 +85,9 @@ number.{p_end}
 
 {pstd}Pad strings to be the same length. By default, we concatenate
 strings. So if you want to hash "a" and "hello", you can padd "a" with
-null characters to "a\0\0\0\0" so it is the same length as "hello". {p_end}
+null characters to "a\0\0\0\0" so it is the same length as "hello" (well,
+not quite the same length, since the null character doesn't count for
+almost any other intents and purposes, but it does change the hash).{p_end}
 {phang2}{cmd:. shasum make, sha1(make_sha1_pad) pad}{p_end}
 
 {marker author}{...}
