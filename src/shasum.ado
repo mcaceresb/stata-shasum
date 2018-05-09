@@ -361,8 +361,8 @@ end
 if ( inlist("`c(os)'", "MacOSX") | strpos("`c(machine_type)'", "Mac") ) local c_os_ macosx
 else local c_os_: di lower("`c(os)'")
 
-cap program drop env_set
-program env_set, plugin using("env_set_`c_os_'.plugin")
+* cap program drop env_set
+* program env_set, plugin using("env_set_`c_os_'.plugin")
 
 cap program drop shasum_plugin
 program shasum_plugin, plugin using("shasum_`c_os_'.plugin")

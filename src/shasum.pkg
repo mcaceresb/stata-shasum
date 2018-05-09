@@ -27,8 +27,5 @@ d
 f shasum.ado
 f shasum.sthlp
 f shasum_unix.plugin
-f env_set_unix.plugin
 f shasum_windows.plugin
-f env_set_windows.plugin
 f shasum_macosx.plugin
-f env_set_macosx.plugin

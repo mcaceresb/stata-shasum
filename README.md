@@ -49,7 +49,7 @@ Compiling
 
 To compile, you will need
 
-- The GNU compiler collection (git)
+- The GNU compiler collection (gcc)
 - git
 - OpenSSL
 - Cygwin (on Windows) with gcc, make, x86_64-w64-mingw32-gcc-5.4.0.exe, and OpenSSL (Cygwin is pretty massive by default; I would install only those packages).
