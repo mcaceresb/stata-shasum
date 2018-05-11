@@ -1,10 +1,9 @@
-*! version 0.1.2 07May2018 Mauricio Caceres Bravo, mauricio.caceres.bravo@gmail.com
+*! version 0.1.3 11May2018 Mauricio Caceres Bravo, mauricio.caceres.bravo@gmail.com
 *! Wrapper for OpenSSL's MD5, SHA1, SHA224, SHA256, SHA384, and SHA512
 
 capture program drop shasum
 program shasum
     syntax [varlist] [if] [in], [ ///
-        DEPENDencies              ///
         LICENSEs                  ///
                                   ///
         md5(str)                  /// 128-bit hash (32 hex characters)
@@ -19,15 +18,15 @@ program shasum
     ]
 
     local hash `md5'`sha1'`sha224'`sha256'`sha384'`sha512'
-    local what `hash'`dependencies'`licenses'
+    local what `hash'`licenses'
 
     if ( `"`what'"' == `""' ) {
         disp as err "one of md5(), sha1(), sha224(), sha256(), sha384(), or sha512() required."
         exit 198
     }
 
-    * Dependencies
-    * ------------
+    * Licenses
+    * --------
 
     if ( "`licenses'" != "" ) {
         disp `"shasum is {browse "https://github.com/mcaceresb/stata-shasum/blob/master/LICENSE":MIT-licensed }"'
@@ -35,17 +34,7 @@ program shasum
         disp `"The GNU C library is GPL-licensed. See the {browse "http://www.gnu.org/licenses/":GNU lesser GPL for more details}."'
         disp ""
         disp `"The OpenSSL library and toolkit are under the {browse "https://www.openssl.org/source/license.html":OpenSSL license}."'
-        if ( `"`hash'`dependencies'"' == `""' ) {
-            exit 0
-        }
-    }
-
-    if ( "`dependencies'" != "" ) {
-        cap noi get_dll
-        if ( _rc ) {
-            exit _rc
-        }
-        else if ( `"`hash'"' == `""' ) {
+        if ( `"`hash'"' == `""' ) {
             exit 0
         }
     }

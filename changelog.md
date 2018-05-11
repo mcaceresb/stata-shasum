@@ -1,6 +1,13 @@
 Change Log
 ==========
 
+## shasum-0.1.3 (2018-05-07)
+
+### Bug fixes
+
+- This was compiled with static libraries on Windows, OSX, and Linux so
+  it is not necessary to add a dependencies option.
+
 ## shasum-0.1.2 (2018-05-07)
 
 ### Features

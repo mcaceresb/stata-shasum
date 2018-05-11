@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 0.1.2 07May2018}{...}
+{* *! version 0.1.3 11May2018}{...}
 {viewerdialog shasum "dialog shasum"}{...}
 {vieweralsosee "[R] shasum" "mansection R shasum"}{...}
 {viewerjumpto "Syntax" "shasum##syntax"}{...}
@@ -11,10 +11,6 @@
 {p2colset 5 15 19 2}{...}
 {p2col :{cmd:shasum} {hline 2}}Wrapper for various cryptographic hashes from OpenSSL{p_end}
 {p2colreset}{...}
-
-{pstd}
-{it:Note for Windows users}: It may be necessary to run
-{opt shasum, dependencies} at the start of your Stata session.
 
 {marker syntax}{...}
 {title:Syntax}
@@ -49,8 +45,6 @@
 
 {syntab:Extras}
 {synopt :{opt pad}} Pad strings with null characters.
-{p_end}
-{synopt :{opt dependencies}} Download windows DLLs to working directory.
 {p_end}
 {synopt :{opt licenses}} Print open source licenses.
 {p_end}
