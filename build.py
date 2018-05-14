@@ -206,10 +206,7 @@ with open(path.join("src", "shasum.ado"), 'r') as f:
     line    = f.readline()
     version = search('(\d+\.?)+', line).group(0)
 
-plugins = ["env_set_unix.plugin",
-           "env_set_windows.plugin",
-           "env_set_macosx.plugin",
-           "shasum_unix.plugin",
+plugins = ["shasum_unix.plugin",
            "shasum_windows.plugin",
            "shasum_macosx.plugin",
            "libssl.dll",
@@ -303,4 +300,3 @@ if args['test']:
     chdir("build")
     system(statado + " tests.do")
     chdir(maindir)
- 

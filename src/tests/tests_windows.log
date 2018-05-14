@@ -2,10 +2,10 @@
       name:  shasum_tests
        log:  C:\cygwin64\home\mauricio\shasum\build\tests_windows.log
   log type:  text
- opened on:   7 May 2018, 11:19:30
+ opened on:  14 May 2018, 05:22:50
 
 
-Start:        11:19:30  7 May 2018
+Start:        05:22:50 14 May 2018
 OS:           Windows
 Machine Type: PC (64-bit x86-64)
 
@@ -44,43 +44,27 @@ Checking hashes for make make padded
     shasum_test (passed): sha256
     shasum_test (passed): sha384
     shasum_test (passed): sha512
+(4 files hashed, 0 files not found)
+
+Checking hashes for list of files
+
+    shasum_test (passed): md5
+    shasum_test (passed): sha1
+    shasum_test (passed): sha224
+    shasum_test (passed): sha256
+    shasum_test (passed): sha384
+    shasum_test (passed): sha512
+(4 files hashed, 0 files not found)
+
+Checking hashes for list of paths and files
+
+    shasum_test (passed): md5
+    shasum_test (passed): sha1
+    shasum_test (passed): sha224
+    shasum_test (passed): sha256
+    shasum_test (passed): sha384
+    shasum_test (passed): sha512
 
 . 
 end of do-file
 
-. l in 1/1
-
-     +-----------------------------------------------------------------------------------------------------+
-  1. |         make   |                               md5   |                                       sha1   |
-     |  AMC Concord   |  adacba5851729fa2e403fc4d45c4f4ed   |   99ba5e5d21e22e2b4912ded333926116787e28b0   |
-     |-----------------------------------------------------------------------------------------------------|
-     |                                                                        sha224                       |
-     |                      a8d7f3fb6f7c0d66a729972da05796ac33a5ef4770a3da2ef2340f94                       |
-     |-----------------------------------------------------------------------------------------------------|
-     |                                                                            sha256                   |
-     |                  18c375968ed68018044b282d30bf873d394890ad87c85b4884842c78c13f921f                   |
-     |-----------------------------------------------------------------------------------------------------|
-     |                                                                                            sha384   |
-     |  b1639d0afd1169890b5a164250c66cff8b7c9bdc440ac19f4c4a71058dec1a5bb3a8944d4e04bd207630480f12e7507a   |
-     |-----------------------------------------------------------------------------------------------------|
-     | sha512                                                                                              |
-     | 6ce46c74e6bb928781767486074f94f2a82c1523844b3d26be8f7d12fee4f0128dd4e3240b27c632bce32ec986c55f996.. |
-     |-----------------------------------------------------------------------------------------------------|
-     |                                 st_md5       |                                        st_sha1       |
-     |       adacba5851729fa2e403fc4d45c4f4ed       |       99ba5e5d21e22e2b4912ded333926116787e28b0       |
-     |-----------------------------------------------------------------------------------------------------|
-     |                                                                     st_sha224                       |
-     |                      a8d7f3fb6f7c0d66a729972da05796ac33a5ef4770a3da2ef2340f94                       |
-     |-----------------------------------------------------------------------------------------------------|
-     |                                                                         st_sha256                   |
-     |                  18c375968ed68018044b282d30bf873d394890ad87c85b4884842c78c13f921f                   |
-     |-----------------------------------------------------------------------------------------------------|
-     |                                                                                         st_sha384   |
-     |  b1639d0afd1169890b5a164250c66cff8b7c9bdc440ac19f4c4a71058dec1a5bb3a8944d4e04bd207630480f12e7507a   |
-     |-----------------------------------------------------------------------------------------------------|
-     | --Break--
-r(1);
-
-. cls
-
-. exit, clear

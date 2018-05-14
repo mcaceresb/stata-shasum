@@ -17,3 +17,20 @@ shasum make price, sha1(makeprice_sha1)
 * not quite the same length, since the null character doesn't count for
 * almost any other intents and purposes, but it does change the hash).
 shasum make, sha1(make_sha1_pad) pad
+shasum make, sha1(make_sha1_pad) pad
+
+* You can also compute the hash of a list of files!
+clear
+set obs 1
+findfile auto.dta
+gen y = `"`r(fn)'"'
+shasum y, sha1(shay)  filelist
+l
+
+* For files, you can pass the path in parts. If variable x contains
+* "folder/" and variable y contains "file.ext", then you can do:
+*
+* shasum x y, sha1(shay) filelist path(/path/to/folder/)
+*
+* Note that shasum won't add path delimiters, so they must end in "/" or
+* the file won't be found.

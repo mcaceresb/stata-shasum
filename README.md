@@ -7,7 +7,7 @@ This package provides a C wrapper for the hash functions (checksums)
 in the OpenSSL library, namely MD5, SHA1, SHA224, SHA256, SHA384, and
 SHA512.
 
-`version 0.1.3 11May2018`
+`version 0.1.4 13May2018`
 
 Installation
 ------------
@@ -41,8 +41,25 @@ shasum make price, sha1(makeprice_sha1)
 * characters to "a\0\0\0\0" so it is the same length as "hello".
 shasum make, sha1(make_sha1_pad) pad
 
+* You can also hash a file
+clear
+set obs 1
+findfile auto.dta
+gen y = `"`r(fn)'"'
+shasum y, sha1(shay) filelist
+l
+
 help shasum
 ```
+
+For files, you can pass the path in parts. If variable x contains
+"folder/" and variable y contains "file.ext", then you can do:
+```stata
+shasum x y, sha1(shay) filelist path(/path/to/folder/)
+```
+
+Note that shasum won't add path delimiters, so they must end in "/" or
+the file won't be found.
 
 Compiling
 ---------

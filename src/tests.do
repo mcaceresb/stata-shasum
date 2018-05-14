@@ -5,7 +5,7 @@
 * Created: Sun May  6 12:23:55 EDT 2018
 * Updated: Mon May  7 14:04:07 EDT 2018
 * Purpose: Unit tests for shasum
-* Version: 0.1.3
+* Version: 0.1.4
 * Manual:  help shasu
 
 version 13
@@ -63,6 +63,16 @@ program main
         shasum make make, `gens' pad
         check_hashes make make padded
 
+    clear
+    qui import delimited `"../src/tests/meta_hashes.csv"', varn(1) clear
+        shasum fname, `gens' file path(../src/tests/)
+        check_hashes list of files
+
+    clear
+    qui import delimited `"../src/tests/meta_hashes.csv"', varn(1) clear
+        gen fpath = "src/tests/"
+        shasum fpath fname, `gens' file path(../)
+        check_hashes list of paths and files
 end
 
 capture program drop check_hashes

@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 0.1.3 11May2018}{...}
+{* *! version 0.1.4 13May2018}{...}
 {viewerdialog shasum "dialog shasum"}{...}
 {vieweralsosee "[R] shasum" "mansection R shasum"}{...}
 {viewerjumpto "Syntax" "shasum##syntax"}{...}
@@ -83,6 +83,21 @@ null characters to "a\0\0\0\0" so it is the same length as "hello" (well,
 not quite the same length, since the null character doesn't count for
 almost any other intents and purposes, but it does change the hash).{p_end}
 {phang2}{cmd:. shasum make, sha1(make_sha1_pad) pad}{p_end}
+
+{pstd}You can also compute the hash of a list of files!{p_end}
+{phang2}{cmd:. clear}{p_end}
+{phang2}{cmd:. set obs 1}{p_end}
+{phang2}{cmd:. findfile auto.dta}{p_end}
+{phang2}{cmd:. gen y = `"`r(fn)'"'}{p_end}
+{phang2}{cmd:. shasum y, sha1(shay)  filelist}{p_end}
+{phang2}{cmd:. list}{p_end}
+
+{pstd}For files, you can pass the path in parts. If variable x contains
+"folder/" and variable y contains "file.ext", then you can do:{p_end}
+{phang2}{cmd:. shasum x y, sha1(shay) filelist path(/path/to/folder/)}{p_end}
+
+{pstd}Note that shasum won't add path delimiters, so they must end in
+"/" or the file won't be found.{p_end}
 
 {marker author}{...}
 {title:Author}
