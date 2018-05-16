@@ -13,18 +13,22 @@ shasum make price, sha1(makeprice_sha1)
 
 * Pad strings to be the same length. By default, we concatenate strings.
 * So if you want to hash "a" and "hello", you can padd "a" with null
-* characters to "a\0\0\0\0" so it is the same length as "hello" (well,
-* not quite the same length, since the null character doesn't count for
-* almost any other intents and purposes, but it does change the hash).
-shasum make, sha1(make_sha1_pad) pad
+* characters to "a\0\0\0\0" so it is the same length as "hello".
 shasum make, sha1(make_sha1_pad) pad
 
-* You can also compute the hash of a list of files!
+* You can also hash a file
+findfile auto.dta
+shasum, file(`r(fn)', sha1)
+return list
+local sha1 = `"`r(sha1)'"'
+
+* or a list of files
 clear
 set obs 1
 findfile auto.dta
 gen y = `"`r(fn)'"'
-shasum y, sha1(shay)  filelist
+shasum y, sha1(shay) filelist
+assert `"`=shay[1]'"' == `"`sha1'"'
 l
 
 * For files, you can pass the path in parts. If variable x contains
@@ -33,4 +37,6 @@ l
 * shasum x y, sha1(shay) filelist path(/path/to/folder/)
 *
 * Note that shasum won't add path delimiters, so they must end in "/" or
-* the file won't be found.
+* the file won't be found. You can also do
+*
+* shasum, file(name, sha1) path(/path/to/file/)

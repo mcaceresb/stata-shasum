@@ -93,12 +93,14 @@ struct StataInfo {
     GT_bool benchmark;
     GT_bool concat;
     GT_bool flist;
+    GT_bool file;
     //
     GT_size kvars_sources;
     GT_size kvars_targets;
     GT_size kvars_num;
     GT_size kvars_str;
     GT_size lpath;
+    GT_size lfile;
     //
     GT_size *inlens;
     GT_size *outlens;
@@ -113,9 +115,12 @@ struct StataInfo {
 };
 
 // Main functions
-ST_retcode ssf_parse_info   (struct StataInfo *st_info, int level);
-ST_retcode ssf_read_varlist (struct StataInfo *st_info, int level);
-ST_retcode ssf_hash_varlist (struct StataInfo *st_info, int level);
+ST_retcode ssf_parse_info    (struct StataInfo *st_info, int level);
+ST_retcode ssf_read_varlist  (struct StataInfo *st_info, int level);
+ST_retcode ssf_hash          (struct StataInfo *st_info, int level);
+ST_retcode ssf_hash_varlist  (struct StataInfo *st_info, int level);
+ST_retcode ssf_hash_filelist (struct StataInfo *st_info, int level);
+ST_retcode ssf_hash_file     (struct StataInfo *st_info, int level);
 void ssf_free (struct StataInfo *st_info);
 
 

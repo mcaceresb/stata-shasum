@@ -42,11 +42,18 @@ shasum make price, sha1(makeprice_sha1)
 shasum make, sha1(make_sha1_pad) pad
 
 * You can also hash a file
+findfile auto.dta
+shasum, file(`r(fn)', sha1)
+return list
+local sha1 = `"`r(sha1)'"'
+
+* or a list of files
 clear
 set obs 1
 findfile auto.dta
 gen y = `"`r(fn)'"'
 shasum y, sha1(shay) filelist
+assert `"`=shay[1]'"' == `"`sha1'"'
 l
 
 help shasum

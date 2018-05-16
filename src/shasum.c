@@ -57,7 +57,7 @@ STDLL stata_call(int argc, char *argv[])
         sf_printf("\tPlugin Step 3: Hash varlist\n");
     }
 
-    if ( (rc = ssf_hash_varlist (st_info, 0)) ) {
+    if ( (rc = ssf_hash (st_info, 0)) ) {
         goto exit;
     }
 
@@ -72,6 +72,10 @@ exit:
     return (rc);
 }
 
+/*********************************************************************
+ *                            Stata info                             *
+ *********************************************************************/
+
 /**
  * @brief Parse variable info from Stata
  *
@@ -81,28 +85,21 @@ exit:
 ST_retcode ssf_parse_info (struct StataInfo *st_info, int level)
 {
     ST_retcode rc = 0;
-    GT_size k, ilen, in1, in2, N, start;
+    GT_size k, ilen, in1, in2, N;
 
     GT_size any_if,
             debug,
             /* benchmark, */
             concat,
             flist,
+            file,
             rowbytes,
             kvars_targets,
             kvars_sources,
             kvars_num,
             kvars_str,
-            lpath;
-
-    // Check there are observations in the subset provided
-    if ( (start = sf_anyobs_sel()) == 0 ) return (17001);
-
-    // Get start and end position; number of variables
-    in1 = SF_in1();
-    in2 = SF_in2();
-    N   = in2 - in1 + 1;
-    if ( N < 1 ) return (17001);
+            lpath,
+            lfile;
 
     // Parse switches
     if ( (rc = sf_scalar_size("__shasum_debug",     &debug)     )) goto exit;
@@ -110,18 +107,36 @@ ST_retcode ssf_parse_info (struct StataInfo *st_info, int level)
     if ( (rc = sf_scalar_size("__shasum_any_if",    &any_if)    )) goto exit;
     if ( (rc = sf_scalar_size("__shasum_concat",    &concat)    )) goto exit;
     if ( (rc = sf_scalar_size("__shasum_flist",     &flist)     )) goto exit;
+    if ( (rc = sf_scalar_size("__shasum_file",      &file)      )) goto exit;
 
+    // Check there are observations in the subset provided
+    if ( (file == 0) && (sf_anyobs_sel() == 0) ) {
+        return (17001);
+    }
+
+    // Get start and end position; number of variables
+    in1 = SF_in1();
+    in2 = SF_in2();
+    N   = in2 - in1 + 1;
+    if ( (file == 0) && (N < 1) ) {
+        printf("i died there\n");
+        return (17001);
+    }
+
+    // Parse extra info
     if ( (rc = sf_scalar_size("__shasum_kvars_sources",  &kvars_sources) )) goto exit;
     if ( (rc = sf_scalar_size("__shasum_kvars_targets",  &kvars_targets) )) goto exit;
     if ( (rc = sf_scalar_size("__shasum_kvars_num",      &kvars_num)     )) goto exit;
     if ( (rc = sf_scalar_size("__shasum_kvars_str",      &kvars_str)     )) goto exit;
     if ( (rc = sf_scalar_size("__shasum_lpath",          &lpath)         )) goto exit;
+    if ( (rc = sf_scalar_size("__shasum_lfile",          &lfile)         )) goto exit;
 
     if ( debug ) {
         printf("\tPlugin Step 1: Parsing stata info\n");
         sf_printf("\tPlugin Step 1: Parsing stata info\n");
     }
 
+    // Parse matrices
     st_info->inlens   = calloc(kvars_sources, sizeof st_info->inlens);
     st_info->outlens  = calloc(kvars_targets, sizeof st_info->outlens);
     st_info->shacodes = calloc(kvars_targets, sizeof st_info->shacodes);
@@ -231,16 +246,22 @@ ST_retcode ssf_parse_info (struct StataInfo *st_info, int level)
     st_info->any_if    = any_if;
     st_info->concat    = concat;
     st_info->flist     = flist;
+    st_info->file      = file;
 
     st_info->kvars_sources = kvars_sources;
     st_info->kvars_targets = kvars_targets;
     st_info->kvars_num     = kvars_num;
     st_info->kvars_str     = kvars_str;
     st_info->lpath         = lpath;
+    st_info->lfile         = lfile;
 
 exit:
     return(rc);
 }
+
+/*********************************************************************
+ *                           Read varlist                            *
+ *********************************************************************/
 
 /**
  * @brief Read varlist to hash from stata
@@ -262,28 +283,40 @@ ST_retcode ssf_read_varlist (struct StataInfo *st_info, int level)
     // GT_size knum       = st_info->kvars_num;
     GT_size *positions = st_info->positions;
 
-    st_info->st_charx = calloc(N, rowbytes);
-    if ( st_info->st_charx == NULL ) {
-        return (sf_oom_error("ssf_read_varlist", "st_charx"));
-    }
-    st_info->free = 3;
+    if ( st_info->file ) {
+        st_info->st_charx = malloc(sizeof(st_info->st_charx));
+        st_info->index    = malloc(sizeof(st_info->index));
+        st_info->rowix    = malloc(sizeof(st_info->rowix));
 
-    st_info->index = calloc(N, sizeof(st_info->index));
-    if ( st_info->index == NULL ) {
-        return (sf_oom_error("ssf_read_varlist", "index"));
-    }
+        st_info->free  = 3;
+        st_info->free  = 4;
+        st_info->Nread = 0;
 
-    if ( st_info->concat ) {
-        st_info->rowix = calloc(N, sizeof(st_info->index));
-        for (i = 0; i < N; i++) {
-            st_info->rowix[i] = 0;
-        }
+        goto exit;
     }
     else {
-        st_info->rowix = malloc(sizeof(st_info->rowix));
-    }
+        st_info->st_charx = calloc(N, rowbytes);
+        if ( st_info->st_charx == NULL ) {
+            return (sf_oom_error("ssf_read_varlist", "st_charx"));
+        }
+        st_info->free = 3;
 
-    st_info->free = 4;
+        st_info->index = calloc(N, sizeof(st_info->index));
+        if ( st_info->index == NULL ) {
+            return (sf_oom_error("ssf_read_varlist", "index"));
+        }
+
+        if ( st_info->concat ) {
+            st_info->rowix = calloc(N, sizeof(st_info->index));
+            for (i = 0; i < N; i++) {
+                st_info->rowix[i] = 0;
+            }
+        }
+        else {
+            st_info->rowix = malloc(sizeof(st_info->rowix));
+        }
+        st_info->free = 4;
+    }
 
     // Clean all the chunks
     for (i = 0; i < N; i++) {
@@ -398,13 +431,127 @@ exit:
     return(rc);
 }
 
+/*********************************************************************
+ *                           Hash varlist                            *
+ *********************************************************************/
+
 /**
- * @brief Hash varlist to hash from stata
+ * @brief Hash varlist, file list, or single to hash from stata
  *
  * @param st_info Pointer to container structure for Stata info
- * @return Stores requested hashes in Stata output variables
+ * @return Stores requested hashes in Stata output variables or locals
  */
+ST_retcode ssf_hash (struct StataInfo *st_info, int level)
+{
+    if ( st_info->file ) {
+        if ( st_info->debug ) {
+            printf("\t\t(file)\n");
+            sf_printf("\t\t(file)\n");
+        }
+        return (ssf_hash_file (st_info, level));
+    }
+    else if ( st_info->flist ) {
+        if ( st_info->debug ) {
+            printf("\t\t(list of files)\n");
+            sf_printf("\t\t(list of files)\n");
+        }
+        return (ssf_hash_filelist (st_info, level));
+    }
+    else {
+        if ( st_info->debug ) {
+            printf("\t\t(varlist)\n");
+            sf_printf("\t\t(varlist)\n");
+        }
+        return (ssf_hash_varlist (st_info, level));
+    }
+}
+
 ST_retcode ssf_hash_varlist (struct StataInfo *st_info, int level)
+{
+    ST_retcode rc = 0;
+    GT_size i, k, selrow, selix, selk, rowlen;
+
+    GT_size rowbytes   = st_info->rowbytes;
+    GT_size Nread      = st_info->Nread;
+    GT_size in1        = st_info->in1;
+    GT_size ksources   = st_info->kvars_sources;
+    GT_size ktargets   = st_info->kvars_targets;
+    GT_size *shacodes  = st_info->shacodes;
+    GT_size *shalens   = st_info->shalens;
+
+    SHASUM_MAX (st_info->shalens, ktargets, shamax, i)
+
+    unsigned char * iptr;
+    unsigned char * hbuffer = malloc(sizeof(unsigned char) * shamax + sizeof(unsigned char));
+    // memset(hbuffer, 0x0, sizeof(char) * shamax + sizeof(unsigned char));
+
+    char * hptr;
+    char * hashstr = malloc(sizeof(char) * (shamax * 2) + sizeof(char));
+    // memset(hashstr, 0x0, sizeof(char) * (shamax * 2) + sizeof(char));
+
+    if ( st_info->debug ) {
+        printf("\t\tdebug 3 Nread:    "GT_size_cfmt"\n", Nread);
+        printf("\t\tdebug 3 rowbytes: "GT_size_cfmt"\n", rowbytes);
+        sf_printf("\t\tdebug 3 Nread:    "GT_size_cfmt"\n", Nread);
+        sf_printf("\t\tdebug 3 rowbytes: "GT_size_cfmt"\n", rowbytes);
+    }
+    // printf("\t\tdebug 3 shamax: "GT_size_cfmt"\n", shamax);
+
+    selrow = 0;
+    for (i = 0; i < Nread; i++) {
+        rowlen = st_info->concat? st_info->rowix[i]: rowbytes;
+        selix  = st_info->index[i];
+
+        for (k = 0; k < ktargets; k++) {
+            // hbuffer = malloc(sizeof(unsigned char) * shamax);
+            memset(hbuffer, 0x0, sizeof(char) * shamax);
+            memset(hashstr, 0x0, sizeof(char) * shamax * 2);
+
+            if ( shacodes[k] == 1  ) {
+                MD5((unsigned char *) st_info->st_charx + selrow, rowlen, hbuffer);
+            }
+            else if ( shacodes[k] == 2  ) {
+                SHA1((unsigned char *) st_info->st_charx + selrow, rowlen, hbuffer);
+            }
+            else if ( shacodes[k] == 3  ) {
+                SHA224((unsigned char *) st_info->st_charx + selrow, rowlen, hbuffer);
+            }
+            else if ( shacodes[k] == 4  ) {
+                SHA256((unsigned char *) st_info->st_charx + selrow, rowlen, hbuffer);
+            }
+            else if ( shacodes[k] == 5  ) {
+                SHA384((unsigned char *) st_info->st_charx + selrow, rowlen, hbuffer);
+            }
+            else if ( shacodes[k] == 6 ) {
+                SHA512((unsigned char *) st_info->st_charx + selrow, rowlen, hbuffer);
+            }
+
+            selk = k + 1 + ksources;
+            hptr = hashstr;
+
+            for (iptr = hbuffer; iptr < hbuffer + shalens[k]; iptr++, hptr += 2) {
+                sprintf(hptr, "%02x", *iptr);
+            }
+
+            memset(hashstr + sizeof(char) * shalens[k] * 2, '\0', sizeof(char));
+            // printf("debug %lu: %lu -> %lu = %s (%lu) -> %s\n",
+            //        i, selrow, selix, st_info->st_charx + selrow, rowlen, hashstr);
+
+            if ( (rc = SF_sstore(selk, selix + in1, hashstr)) ) {
+                goto exit;
+            }
+        }
+
+        selrow += rowlen + st_info->concat;
+    }
+
+exit:
+    free (hbuffer);
+    free (hashstr);
+    return(rc);
+}
+
+ST_retcode ssf_hash_filelist (struct StataInfo *st_info, int level)
 {
     ST_retcode rc = 0;
     GT_size i, k, selrow, selix, selk, rowlen, nfail, nok;
@@ -449,166 +596,267 @@ ST_retcode ssf_hash_varlist (struct StataInfo *st_info, int level)
     }
     // printf("\t\tdebug 3 shamax: "GT_size_cfmt"\n", shamax);
 
-    selrow = 0;
-    if ( st_info->flist ) {
-
-        SHASUM_MAX (st_info->rowix, Nread, strmax, i)
-        filename = malloc(sizeof(char) * (strmax + st_info->lpath + 3));
-        if ( filename == NULL ) {
-            return (sf_oom_error("ssf_hash_varlist", "filename"));
-        }
-        else {
-            memset (filename, '\0', sizeof(char) * (strmax + st_info->lpath + 3));
-            if ( st_info->lpath ) {
-                if ( (rc = SF_macro_use("_path", filename, (st_info->lpath + 1) * sizeof(char))) ) {
-                    goto exit;
-                }
-            }
-        }
-        char * fileptr = filename + st_info->lpath;
-
-        nfail = nok = 0;
-        for (i = 0; i < Nread; i++) {
-            rowlen = st_info->rowix[i];
-            selix  = st_info->index[i];
-
-            // memset(hbuffer, 0x0, sizeof(unsigned char) * shamax + sizeof(unsigned char));
-            // memset(hashstr, 0x0, sizeof(char) * (shamax * 2) + sizeof(char));
-            memset(hbuffer, '\0', sizeof(unsigned char) * shamax + sizeof(unsigned char));
-            memset(hashstr, '\0', sizeof(char) * (shamax * 2) + sizeof(char));
-
-            memcpy (fileptr, st_info->st_charx + selrow, rowlen);
-            if ( access(filename, F_OK) == -1 ) {
-                nfail++;
-                continue;
-            }
-            else {
-                nok++;
-            }
-
-            for (k = 0; k < ktargets; k++) {
-                filehandle = fopen(filename, "rb");
-                if ( shacodes[k] == 1  ) {
-                    MD5_Init(&ctx_md5);
-                    do {
-                        filebytes = fread(filebuf, sizeof(char), 512, filehandle);
-                        MD5_Update(&ctx_md5, filebuf, filebytes);
-                    } while(filebytes > 0);
-                    MD5_Final(hbuffer, &ctx_md5);
-                }
-                else if ( shacodes[k] == 2  ) {
-                    SHA1_Init(&ctx_sha1);
-                    do {
-                        filebytes = fread(filebuf, sizeof(char), 512, filehandle);
-                        SHA1_Update(&ctx_sha1, filebuf, filebytes);
-                    } while(filebytes > 0);
-                    SHA1_Final(hbuffer, &ctx_sha1);
-                }
-                else if ( shacodes[k] == 3  ) {
-                    SHA224_Init(&ctx_sha224);
-                    do {
-                        filebytes = fread(filebuf, sizeof(char), 512, filehandle);
-                        SHA224_Update(&ctx_sha224, filebuf, filebytes);
-                    } while(filebytes > 0);
-                    SHA224_Final(hbuffer, &ctx_sha224);
-                }
-                else if ( shacodes[k] == 4  ) {
-                    SHA256_Init(&ctx_sha256);
-                    do {
-                        filebytes = fread(filebuf, sizeof(char), 512, filehandle);
-                        SHA256_Update(&ctx_sha256, filebuf, filebytes);
-                    } while(filebytes > 0);
-                    SHA256_Final(hbuffer, &ctx_sha256);
-                }
-                else if ( shacodes[k] == 5  ) {
-                    SHA384_Init(&ctx_sha384);
-                    do {
-                        filebytes = fread(filebuf, sizeof(char), 512, filehandle);
-                        SHA384_Update(&ctx_sha384, filebuf, filebytes);
-                    } while(filebytes > 0);
-                    SHA384_Final(hbuffer, &ctx_sha384);
-                }
-                else if ( shacodes[k] == 6 ) {
-                    SHA512_Init(&ctx_sha512);
-                    do {
-                        // filebytes = fread(filehandle, filebuf, 512);
-                        filebytes = fread(filebuf, sizeof(char), 512, filehandle);
-                        SHA512_Update(&ctx_sha512, filebuf, filebytes);
-                    } while(filebytes > 0);
-                    SHA512_Final(hbuffer, &ctx_sha512);
-                }
-                fclose (filehandle);
-
-                selk = k + 1 + ksources;
-                hptr = hashstr;
-
-                for (iptr = hbuffer; iptr < hbuffer + shalens[k]; iptr++, hptr += 2) {
-                    sprintf(hptr, "%02x", *iptr);
-                }
-
-                memset(hashstr + sizeof(char) * shalens[k] * 2, '\0', sizeof(char));
-                // printf("debug %lu: %lu -> %lu = %s (%lu) -> %s\n",
-                //        i, selrow, selix, st_info->st_charx + selrow, rowlen, hashstr);
-
-                if ( (rc = SF_sstore(selk, selix + in1, hashstr)) ) {
-                    goto exit;
-                }
-            }
-
-            memset (fileptr, '\0', (strmax + 1) * sizeof(char));
-            selrow += rowlen + st_info->concat;
-        }
-
-        sf_printf("("GT_size_cfmt" files hashed, "GT_size_cfmt" files not found)\n", nok, nfail);
-        // printf("("GT_size_cfmt" files hashed, "GT_size_cfmt" files not found)\n", nok, nfail);
+    SHASUM_MAX (st_info->rowix, Nread, strmax, i)
+    filename = malloc(sizeof(char) * (strmax + st_info->lpath + 3));
+    if ( filename == NULL ) {
+        return (sf_oom_error("ssf_hash_filelist", "filename"));
     }
     else {
-        filename = malloc(sizeof(char));
-        for (i = 0; i < Nread; i++) {
-            rowlen = st_info->concat? st_info->rowix[i]: rowbytes;
-            selix  = st_info->index[i];
+        memset (filename, '\0', sizeof(char) * (strmax + st_info->lpath + 3));
+        if ( st_info->lpath ) {
+            if ( (rc = SF_macro_use("_path", filename, (st_info->lpath + 1) * sizeof(char))) ) {
+                goto exit;
+            }
+        }
+    }
+    char * fileptr = filename + st_info->lpath;
 
-            for (k = 0; k < ktargets; k++) {
-                // hbuffer = malloc(sizeof(unsigned char) * shamax);
-                memset(hbuffer, 0x0, sizeof(char) * shamax);
-                memset(hashstr, 0x0, sizeof(char) * shamax * 2);
+    selrow = 0;
+    nfail = nok = 0;
+    for (i = 0; i < Nread; i++) {
+        rowlen = st_info->rowix[i];
+        selix  = st_info->index[i];
 
-                if ( shacodes[k] == 1  ) {
-                    MD5((unsigned char *) st_info->st_charx + selrow, rowlen, hbuffer);
-                }
-                else if ( shacodes[k] == 2  ) {
-                    SHA1((unsigned char *) st_info->st_charx + selrow, rowlen, hbuffer);
-                }
-                else if ( shacodes[k] == 3  ) {
-                    SHA224((unsigned char *) st_info->st_charx + selrow, rowlen, hbuffer);
-                }
-                else if ( shacodes[k] == 4  ) {
-                    SHA256((unsigned char *) st_info->st_charx + selrow, rowlen, hbuffer);
-                }
-                else if ( shacodes[k] == 5  ) {
-                    SHA384((unsigned char *) st_info->st_charx + selrow, rowlen, hbuffer);
-                }
-                else if ( shacodes[k] == 6 ) {
-                    SHA512((unsigned char *) st_info->st_charx + selrow, rowlen, hbuffer);
-                }
+        // memset(hbuffer, 0x0, sizeof(unsigned char) * shamax + sizeof(unsigned char));
+        // memset(hashstr, 0x0, sizeof(char) * (shamax * 2) + sizeof(char));
+        memset(hbuffer, '\0', sizeof(unsigned char) * shamax + sizeof(unsigned char));
+        memset(hashstr, '\0', sizeof(char) * (shamax * 2) + sizeof(char));
 
-                selk = k + 1 + ksources;
-                hptr = hashstr;
+        memcpy (fileptr, st_info->st_charx + selrow, rowlen);
+        if ( access(filename, F_OK) == -1 ) {
+            nfail++;
+            continue;
+        }
+        else {
+            nok++;
+        }
 
-                for (iptr = hbuffer; iptr < hbuffer + shalens[k]; iptr++, hptr += 2) {
-                    sprintf(hptr, "%02x", *iptr);
-                }
+        for (k = 0; k < ktargets; k++) {
+            filehandle = fopen(filename, "rb");
+            if ( shacodes[k] == 1  ) {
+                MD5_Init(&ctx_md5);
+                do {
+                    filebytes = fread(filebuf, sizeof(char), 512, filehandle);
+                    MD5_Update(&ctx_md5, filebuf, filebytes);
+                } while(filebytes > 0);
+                MD5_Final(hbuffer, &ctx_md5);
+            }
+            else if ( shacodes[k] == 2  ) {
+                SHA1_Init(&ctx_sha1);
+                do {
+                    filebytes = fread(filebuf, sizeof(char), 512, filehandle);
+                    SHA1_Update(&ctx_sha1, filebuf, filebytes);
+                } while(filebytes > 0);
+                SHA1_Final(hbuffer, &ctx_sha1);
+            }
+            else if ( shacodes[k] == 3  ) {
+                SHA224_Init(&ctx_sha224);
+                do {
+                    filebytes = fread(filebuf, sizeof(char), 512, filehandle);
+                    SHA224_Update(&ctx_sha224, filebuf, filebytes);
+                } while(filebytes > 0);
+                SHA224_Final(hbuffer, &ctx_sha224);
+            }
+            else if ( shacodes[k] == 4  ) {
+                SHA256_Init(&ctx_sha256);
+                do {
+                    filebytes = fread(filebuf, sizeof(char), 512, filehandle);
+                    SHA256_Update(&ctx_sha256, filebuf, filebytes);
+                } while(filebytes > 0);
+                SHA256_Final(hbuffer, &ctx_sha256);
+            }
+            else if ( shacodes[k] == 5  ) {
+                SHA384_Init(&ctx_sha384);
+                do {
+                    filebytes = fread(filebuf, sizeof(char), 512, filehandle);
+                    SHA384_Update(&ctx_sha384, filebuf, filebytes);
+                } while(filebytes > 0);
+                SHA384_Final(hbuffer, &ctx_sha384);
+            }
+            else if ( shacodes[k] == 6 ) {
+                SHA512_Init(&ctx_sha512);
+                do {
+                    // filebytes = fread(filehandle, filebuf, 512);
+                    filebytes = fread(filebuf, sizeof(char), 512, filehandle);
+                    SHA512_Update(&ctx_sha512, filebuf, filebytes);
+                } while(filebytes > 0);
+                SHA512_Final(hbuffer, &ctx_sha512);
+            }
+            fclose (filehandle);
 
-                memset(hashstr + sizeof(char) * shalens[k] * 2, '\0', sizeof(char));
-                // printf("debug %lu: %lu -> %lu = %s (%lu) -> %s\n",
-                //        i, selrow, selix, st_info->st_charx + selrow, rowlen, hashstr);
+            selk = k + 1 + ksources;
+            hptr = hashstr;
 
-                if ( (rc = SF_sstore(selk, selix + in1, hashstr)) ) {
-                    goto exit;
-                }
+            for (iptr = hbuffer; iptr < hbuffer + shalens[k]; iptr++, hptr += 2) {
+                sprintf(hptr, "%02x", *iptr);
             }
 
-            selrow += rowlen + st_info->concat;
+            memset(hashstr + sizeof(char) * shalens[k] * 2, '\0', sizeof(char));
+            // printf("debug %lu: %lu -> %lu = %s (%lu) -> %s\n",
+            //        i, selrow, selix, st_info->st_charx + selrow, rowlen, hashstr);
+
+            if ( (rc = SF_sstore(selk, selix + in1, hashstr)) ) {
+                goto exit;
+            }
+        }
+
+        memset (fileptr, '\0', (strmax + 1) * sizeof(char));
+        selrow += rowlen + st_info->concat;
+    }
+
+    sf_printf("("GT_size_cfmt" files hashed, "GT_size_cfmt" files not found)\n", nok, nfail);
+    // printf("("GT_size_cfmt" files hashed, "GT_size_cfmt" files not found)\n", nok, nfail);
+
+exit:
+    free (hbuffer);
+    free (hashstr);
+    free (filebuf);
+    free (filename);
+    return(rc);
+}
+
+ST_retcode ssf_hash_file (struct StataInfo *st_info, int level)
+{
+    ST_retcode rc = 0;
+    GT_size i, k;
+
+    GT_size ktargets  = st_info->kvars_targets;
+    GT_size *shacodes = st_info->shacodes;
+    GT_size *shalens  = st_info->shalens;
+
+    SHASUM_MAX (st_info->shalens, ktargets, shamax, i)
+
+    MD5_CTX    ctx_md5;
+    SHA_CTX    ctx_sha1;
+    SHA256_CTX ctx_sha224;
+    SHA256_CTX ctx_sha256;
+    SHA512_CTX ctx_sha384;
+    SHA512_CTX ctx_sha512;
+
+    char * filebuf = malloc(sizeof(char) * 512);
+    memset (filebuf, '\0', 512 * sizeof(char));
+
+    ssize_t filebytes;
+    FILE *filehandle;
+
+    unsigned char * iptr;
+    unsigned char * hbuffer = malloc(sizeof(unsigned char) * shamax + sizeof(unsigned char));
+    // memset(hbuffer, 0x0, sizeof(char) * shamax + sizeof(unsigned char));
+
+    char * hptr;
+    char * hashstr = malloc(sizeof(char) * (shamax * 2) + sizeof(char));
+    // memset(hashstr, 0x0, sizeof(char) * (shamax * 2) + sizeof(char));
+
+    // File (and path) name
+    // --------------------
+
+    char * filename = malloc(sizeof(char) * (st_info->lfile + st_info->lpath + 3));
+    if ( filename == NULL ) {
+        return (sf_oom_error("ssf_hash_file", "filename"));
+    }
+
+    memset (filename, '\0', sizeof(char) * (st_info->lfile + st_info->lpath + 3));
+    if ( st_info->lpath ) {
+        if ( (rc = SF_macro_use("_path", filename, (st_info->lpath + 1) * sizeof(char))) ) {
+            goto exit;
+        }
+    }
+
+    char * fileptr = filename + st_info->lpath;
+    if ( (rc = SF_macro_use("_file", fileptr, (st_info->lfile + 1) * sizeof(char))) ) {
+        goto exit;
+    }
+
+    // Hash file
+    // ---------
+
+    // memset(hbuffer, 0x0, sizeof(unsigned char) * shamax + sizeof(unsigned char));
+    // memset(hashstr, 0x0, sizeof(char) * (shamax * 2) + sizeof(char));
+    memset(hbuffer, '\0', sizeof(unsigned char) * shamax + sizeof(unsigned char));
+    memset(hashstr, '\0', sizeof(char) * (shamax * 2) + sizeof(char));
+
+    if ( access(filename, F_OK) == -1 ) {
+        sf_errprintf("file not found: %s\n", filename);
+        rc = 601;
+        goto exit;
+    }
+
+    for (k = 0; k < ktargets; k++) {
+        filehandle = fopen(filename, "rb");
+        if ( shacodes[k] == 1  ) {
+            MD5_Init(&ctx_md5);
+            do {
+                filebytes = fread(filebuf, sizeof(char), 512, filehandle);
+                MD5_Update(&ctx_md5, filebuf, filebytes);
+            } while(filebytes > 0);
+            MD5_Final(hbuffer, &ctx_md5);
+        }
+        else if ( shacodes[k] == 2  ) {
+            SHA1_Init(&ctx_sha1);
+            do {
+                filebytes = fread(filebuf, sizeof(char), 512, filehandle);
+                SHA1_Update(&ctx_sha1, filebuf, filebytes);
+            } while(filebytes > 0);
+            SHA1_Final(hbuffer, &ctx_sha1);
+        }
+        else if ( shacodes[k] == 3  ) {
+            SHA224_Init(&ctx_sha224);
+            do {
+                filebytes = fread(filebuf, sizeof(char), 512, filehandle);
+                SHA224_Update(&ctx_sha224, filebuf, filebytes);
+            } while(filebytes > 0);
+            SHA224_Final(hbuffer, &ctx_sha224);
+        }
+        else if ( shacodes[k] == 4  ) {
+            SHA256_Init(&ctx_sha256);
+            do {
+                filebytes = fread(filebuf, sizeof(char), 512, filehandle);
+                SHA256_Update(&ctx_sha256, filebuf, filebytes);
+            } while(filebytes > 0);
+            SHA256_Final(hbuffer, &ctx_sha256);
+        }
+        else if ( shacodes[k] == 5  ) {
+            SHA384_Init(&ctx_sha384);
+            do {
+                filebytes = fread(filebuf, sizeof(char), 512, filehandle);
+                SHA384_Update(&ctx_sha384, filebuf, filebytes);
+            } while(filebytes > 0);
+            SHA384_Final(hbuffer, &ctx_sha384);
+        }
+        else if ( shacodes[k] == 6 ) {
+            SHA512_Init(&ctx_sha512);
+            do {
+                // filebytes = fread(filehandle, filebuf, 512);
+                filebytes = fread(filebuf, sizeof(char), 512, filehandle);
+                SHA512_Update(&ctx_sha512, filebuf, filebytes);
+            } while(filebytes > 0);
+            SHA512_Final(hbuffer, &ctx_sha512);
+        }
+        fclose (filehandle);
+
+        hptr = hashstr;
+        for (iptr = hbuffer; iptr < hbuffer + shalens[k]; iptr++, hptr += 2) {
+            sprintf(hptr, "%02x", *iptr);
+        }
+        memset(hashstr + sizeof(char) * shalens[k] * 2, '\0', sizeof(char));
+
+        if ( shacodes[k] == 1 ) {
+            if ( (rc = SF_macro_save("_r_md5", hashstr)) ) goto exit;
+        }
+        else if ( shacodes[k] == 2 ) {
+            if ( (rc = SF_macro_save("_r_sha1", hashstr)) ) goto exit;
+        }
+        else if ( shacodes[k] == 3 ) {
+            if ( (rc = SF_macro_save("_r_sha224", hashstr)) ) goto exit;
+        }
+        else if ( shacodes[k] == 4 ) {
+            if ( (rc = SF_macro_save("_r_sha256", hashstr)) ) goto exit;
+        }
+        else if ( shacodes[k] == 5 ) {
+            if ( (rc = SF_macro_save("_r_sha384", hashstr)) ) goto exit;
+        }
+        else if ( shacodes[k] == 6 ) {
+            if ( (rc = SF_macro_save("_r_sha512", hashstr)) ) goto exit;
         }
     }
 
@@ -619,6 +867,10 @@ exit:
     free (filename);
     return(rc);
 }
+
+/*********************************************************************
+ *                               Clean                               *
+ *********************************************************************/
 
 /**
  * @brief Clean up st_info

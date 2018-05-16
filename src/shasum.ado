@@ -2,7 +2,7 @@
 *! Wrapper for OpenSSL's MD5, SHA1, SHA224, SHA256, SHA384, and SHA512
 
 capture program drop shasum
-program shasum
+program shasum, rclass
     syntax [varlist] [if] [in], [ ///
         LICENSEs                  ///
                                   ///
@@ -15,12 +15,13 @@ program shasum
                                   ///
         pad                       ///
         debug                     ///
-        FILElist                  ///
+        file(str)                 ///
+        filelist                  ///
         path(str)                 ///
     ]
 
     local hash `md5'`sha1'`sha224'`sha256'`sha384'`sha512'
-    local what `hash'`licenses'
+    local what `hash'`licenses'`file'
 
     if ( `"`what'"' == `""' ) {
         disp as err "one of md5(), sha1(), sha224(), sha256(), sha384(), or sha512() required."
@@ -41,10 +42,17 @@ program shasum
         }
     }
 
-    if ( `"`filelist'"' == "" ) {
-        confirm variable `varlist'
+    if ( `"`file'"' != "" ) {
+        local 0 `file'
+        syntax anything(equalok), [MD5_ SHA1_ SHA224_ SHA256_ SHA384_ SHA512_]
+        local hash_ `md5_'`sha1_'`sha224_'`sha256_'`sha384_'`sha512_'
+        local file: copy local anything
+        if ( `"`hash_'"' == `""' ) {
+            disp as err "one of md5, sha1, sha224, sha256, sha384, or sha512 required to hash file."
+            exit 198
+        }
     }
-    else {
+    else if ( `"`filelist'"' != "" ) {
         cap noi confirm str variable `varlist'
         if ( _rc ) {
             disp as err "numeric variables not allowed with option {opt filelist}"
@@ -56,8 +64,14 @@ program shasum
             exit _rc
         }
     }
+    else {
+        confirm variable `varlist'
+    }
+
     scalar __shasum_lpath = `:length local path'
-    scalar __shasum_flist = `"`filelist'"' != ""
+    scalar __shasum_flist = (`"`filelist'"' != "")
+    scalar __shasum_file  = (`"`file'"'     != "")
+    scalar __shasum_lfile = `:length local file'
 
     * Parse requested output
     * ----------------------
@@ -72,32 +86,53 @@ program shasum
     cap matrix drop __shasum_shacodes
     local outvars
     local kout = 0
-    forvalues i = 1 / 6 {
-        local name:  word `i' of `hashname'
-        local len:   word `i' of `hashlen'
-        local len    `len'
-        local `name' ``name''
 
-        if ( "`debug'" != "" ) {
-            disp "Parsing `name' (`len',`i'): ``name''"
-        }
+    if ( `"`file'"' == "" ) {
+        forvalues i = 1 / 6 {
+            local name:  word `i' of `hashname'
+            local len:   word `i' of `hashlen'
+            local len    `len'
+            local `name' ``name''
 
-        if ( "``name''" != "" ) {
-            cap noi confirm new variable ``name''
-            if ( _rc ) {
-                local rc = _rc
-                clean_all `rc'
-                exit `rc'
+            if ( "`debug'" != "" ) {
+                disp "Parsing `name' (`len',`i'): ``name''"
             }
-            local outvars `outvars' ``name''
-            local ++kout
-            qui mata: __shasum_addvars  = __shasum_addvars,  "``name''"
-            qui mata: __shasum_addtypes = __shasum_addtypes, "str`len'"
-            matrix __shasum_outlens  = nullmat(__shasum_outlens),  `len'
-            matrix __shasum_shacodes = nullmat(__shasum_shacodes), `i'
+
+            if ( "``name''" != "" ) {
+                cap noi confirm new variable ``name''
+                if ( _rc ) {
+                    local rc = _rc
+                    clean_all `rc'
+                    exit `rc'
+                }
+                local outvars `outvars' ``name''
+                local ++kout
+                qui mata: __shasum_addvars  = __shasum_addvars,  "``name''"
+                qui mata: __shasum_addtypes = __shasum_addtypes, "str`len'"
+                matrix __shasum_outlens  = nullmat(__shasum_outlens),  `len'
+                matrix __shasum_shacodes = nullmat(__shasum_shacodes), `i'
+            }
         }
+        scalar __shasum_kvars_targets = `kout'
     }
-    scalar __shasum_kvars_targets = `kout'
+    else if ( `"`file'"' != "" ) {
+        forvalues i = 1 / 6 {
+            local name:  word `i' of `hashname'
+            local len:   word `i' of `hashlen'
+            local len    `len'
+
+            if ( "`debug'" != "" ) {
+                disp "Parsing `name' (`len',`i'): ``name'_'"
+            }
+
+            if ( "``name'_'" != "" ) {
+                local ++kout
+                matrix __shasum_outlens  = nullmat(__shasum_outlens),  `len'
+                matrix __shasum_shacodes = nullmat(__shasum_shacodes), `i'
+            }
+        }
+        scalar __shasum_kvars_targets = `kout'
+    }
 
     * Parse input
     * -----------
@@ -110,20 +145,35 @@ program shasum
         scalar __shasum_any_if = 0
     }
 
-    cap noi parse_types `varlist' `ifin'
-    if ( _rc ) {
-        local rc = _rc
-        clean_all `rc'
-        exit `rc'
+    if ( `"`file'"' == "" ) {
+        cap noi parse_types `varlist' `ifin'
+        if ( _rc ) {
+            local rc = _rc
+            clean_all `rc'
+            exit `rc'
+        }
+    }
+    else if ( `"`file'"' != "" ) {
+        scalar __shasum_kvars_sources = 0
+        scalar __shasum_kvars_num     = 0
+        scalar __shasum_kvars_str     = 0
+        matrix __shasum_inlens        = .
     }
 
     * Run the plugin
     * --------------
 
     if ( "`debug'" != "" ) {
-        disp "kout   = `kout'"
-        disp "kin    = `=scalar(__shasum_kvars_sources)'"
-        disp "any_if = `=scalar(__shasum_any_if)'"
+        disp `"kout     = `kout'"'
+        disp `"kin      = `=scalar(__shasum_kvars_sources)'"'
+        disp `"any_if   = `=scalar(__shasum_any_if)'"'
+        disp `""'
+        disp `"filelist = `=scalar(__shasum_flist)'"'
+        disp `""'
+        disp `"file     = `=scalar(__shasum_file)', `=scalar(__shasum_lfile)'"'
+        disp `"           `file'"'
+        disp `"path     = `=scalar(__shasum_lpath)'"'
+        disp `"           `path'"'
     }
     scalar __shasum_debug  = ( "`debug'" != "" )
     scalar __shasum_concat = ( "`pad'"   == "" )
@@ -134,6 +184,21 @@ program shasum
         local rc = _rc
         clean_all `rc'
         exit `rc'
+    }
+
+    if ( `"`file'"' != "" ) {
+        if (`"`r_md5'"'    != "") disp `"`r_md5'"'
+        if (`"`r_sha1'"'   != "") disp `"`r_sha1'"'
+        if (`"`r_sha224'"' != "") disp `"`r_sha224'"'
+        if (`"`r_sha256'"' != "") disp `"`r_sha256'"'
+        if (`"`r_sha384'"' != "") disp `"`r_sha384'"'
+        if (`"`r_sha512'"' != "") disp `"`r_sha512'"'
+        return local md5    = `"`r_md5'"'
+        return local sha1   = `"`r_sha1'"'
+        return local sha224 = `"`r_sha224'"'
+        return local sha256 = `"`r_sha256'"'
+        return local sha384 = `"`r_sha384'"'
+        return local sha512 = `"`r_sha512'"'
     }
 
     * Clean up
@@ -247,6 +312,8 @@ program clean_all
     cap scalar drop __shasum_debug
     cap scalar drop __shasum_lpath
     cap scalar drop __shasum_flist
+    cap scalar drop __shasum_file
+    cap scalar drop __shasum_lfile
 
     cap matrix drop __shasum_inlens
     cap matrix drop __shasum_outlens

@@ -5,7 +5,8 @@ Change Log
 
 ### Features
 
-- Added options -filelist- and -path- to hash a list of files
+- Added options -filelist- and -path()- to hash a list of files
+- Added options -file()- and -path()- to hash a single file
 
 ### Bug fixes
 

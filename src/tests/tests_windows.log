@@ -2,12 +2,18 @@
       name:  shasum_tests
        log:  C:\cygwin64\home\mauricio\shasum\build\tests_windows.log
   log type:  text
- opened on:  14 May 2018, 05:22:50
+ opened on:  16 May 2018, 09:27:58
 
 
-Start:        05:22:50 14 May 2018
+Start:        09:27:58 16 May 2018
 OS:           Windows
 Machine Type: PC (64-bit x86-64)
+
+
+--------------------------------------------------------------------------------
+Varlist hashing
+
+
 
 Checking hashes for make not padded
 
@@ -44,6 +50,12 @@ Checking hashes for make make padded
     shasum_test (passed): sha256
     shasum_test (passed): sha384
     shasum_test (passed): sha512
+
+
+--------------------------------------------------------------------------------
+File list hashing
+
+
 (4 files hashed, 0 files not found)
 
 Checking hashes for list of files
@@ -58,6 +70,44 @@ Checking hashes for list of files
 
 Checking hashes for list of paths and files
 
+    shasum_test (passed): md5
+    shasum_test (passed): sha1
+    shasum_test (passed): sha224
+    shasum_test (passed): sha256
+    shasum_test (passed): sha384
+    shasum_test (passed): sha512
+
+
+--------------------------------------------------------------------------------
+File hashing
+
+
+
+make_hashes.csv
+    shasum_test (passed): md5
+    shasum_test (passed): sha1
+    shasum_test (passed): sha224
+    shasum_test (passed): sha256
+    shasum_test (passed): sha384
+    shasum_test (passed): sha512
+
+make2_hashes.csv
+    shasum_test (passed): md5
+    shasum_test (passed): sha1
+    shasum_test (passed): sha224
+    shasum_test (passed): sha256
+    shasum_test (passed): sha384
+    shasum_test (passed): sha512
+
+make_hashes_pad.csv
+    shasum_test (passed): md5
+    shasum_test (passed): sha1
+    shasum_test (passed): sha224
+    shasum_test (passed): sha256
+    shasum_test (passed): sha384
+    shasum_test (passed): sha512
+
+make2_hashes_pad.csv
     shasum_test (passed): md5
     shasum_test (passed): sha1
     shasum_test (passed): sha224
