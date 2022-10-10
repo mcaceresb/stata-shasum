@@ -1,8 +1,9 @@
-*! version 0.1.4 13May2018 Mauricio Caceres Bravo, mauricio.caceres.bravo@gmail.com
+*! version 0.2.1 09Oct2022 Mauricio Caceres Bravo, mauricio.caceres.bravo@gmail.com
 *! Wrapper for OpenSSL's MD5, SHA1, SHA224, SHA256, SHA384, and SHA512
 
 capture program drop shasum
 program shasum, rclass
+    version 14.2
     syntax [varlist] [if] [in], [ ///
         LICENSEs                  ///
                                   ///
@@ -157,7 +158,9 @@ program shasum, rclass
         scalar __shasum_kvars_sources = 0
         scalar __shasum_kvars_num     = 0
         scalar __shasum_kvars_str     = 0
+        scalar __shasum_kvars_strL    = 0
         matrix __shasum_inlens        = .
+        matrix __shasum_strL          = .
     }
 
     * Run the plugin
@@ -217,13 +220,26 @@ program parse_types, rclass
     syntax varlist [if] [in]
 
     cap matrix drop __shasum_inlens
+    cap matrix drop __shasum_strL
 
     * Check how many of each variable type we have
     * --------------------------------------------
 
+    local genstrl 0
+    foreach invar of varlist `varlist' {
+        if regexm("`:type `invar''", "str([1-9][0-9]*|L)") {
+            if ( regexs(1) == "L" ) {
+                local genstrl 1
+            }
+        }
+    }
+    tempvar strlen
+    if ( `genstrl' ) qui gen long `strlen' = .
+
+    local kvars = 0
     local knum  = 0
     local kstr  = 0
-    local kvars = 0
+    local kstrL = 0
 
     local varnum  ""
     local varstr  ""
@@ -231,27 +247,31 @@ program parse_types, rclass
 
     foreach invar of varlist `varlist' {
         local ++kvars
-        if inlist("`:type `invar''", "byte", "int", "long", "float", "double") {
+        if regexm("`:type `invar''", "str([1-9][0-9]*|L)") {
+            local ++kstr
+            local varstr `varstr' `invar'
+            if ( regexs(1) == "L" ) {
+                local ++kstrL
+                local varstrL `varstrL' `invar'
+                qui replace `strlen' = length(`invar')
+                qui sum `strlen', meanonly
+                matrix __shasum_inlens = nullmat(__shasum_inlens), `r(max)' + 1
+                matrix __shasum_strL   = nullmat(__shasum_strL),   1
+            }
+            else {
+                matrix __shasum_inlens = nullmat(__shasum_inlens), `:di regexs(1)'
+                matrix __shasum_strL   = nullmat(__shasum_strL),   0
+            }
+        }
+        else if inlist("`:type `invar''", "byte", "int", "long", "float", "double") {
             local ++knum
             local varnum `varnum' `invar'
             matrix __shasum_inlens = nullmat(__shasum_inlens), 0
+            matrix __shasum_strL   = nullmat(__shasum_strL),   0
         }
         else {
-            local ++kstr
-            local varstr `varstr' `invar'
-            if regexm("`:type `invar''", "str([1-9][0-9]*|L)") {
-                if (regexs(1) == "L") {
-                    local varstrL `varstrL' `invar'
-                    matrix __shasum_inlens = nullmat(__shasum_inlens), .
-                }
-                else {
-                    matrix __shasum_inlens = nullmat(__shasum_inlens), `:di regexs(1)'
-                }
-            }
-            else {
-                di as err "variable `invar' has unknown type '`:type `invar'''"
-                exit 198
-            }
+            di as err "variable `invar' has unknown type '`:type `invar'''"
+            exit 198
         }
     }
 
@@ -262,25 +282,13 @@ program parse_types, rclass
         exit 198
     }
 
-    if ( "`varstrL'" != "" ) {
-        disp as err _n(1) "shasum 0.1.x does not support strL variables. If your strL variables"    ///
-                    _n(1) "are string-only, try"                                                    ///
-                    _n(2) "    {stata compress `varstrL'}"                                          ///
-                    _n(2) "If this does not work or if you have binary data, then you will have to" ///
-                    _n(1) "wait for the next release of shasum (0.2)."                              ///
-                    _n(2) "This limitation comes from the Stata Plugin Interface (SPI) 2.0"         ///
-                    _n(1) "that was used to write shasum. 3.0 (Stata 14 and above only) added"      ///
-                    _n(1) "support for strL variables. shasum will add strL support in its next"    ///
-                    _n(1) "relase (0.2)."
-        exit 17003
-    }
-
     * Parse which hashing strategy to use
     * -----------------------------------
 
     scalar __shasum_kvars_sources = `kvars'
     scalar __shasum_kvars_num     = `knum'
     scalar __shasum_kvars_str     = `kstr'
+    scalar __shasum_kvars_strL    = `kstrL'
 
     * Return hash info
     * ----------------
@@ -288,6 +296,7 @@ program parse_types, rclass
     return local varlist = "`varlist'"
     return local varnum  = "`varnum'"
     return local varstr  = "`varstr'"
+    return local varstrL = "`varstrL'"
 end
 
 ***********************************************************************
@@ -309,6 +318,7 @@ program clean_all
     cap scalar drop __shasum_kvars_sources
     cap scalar drop __shasum_kvars_num
     cap scalar drop __shasum_kvars_str
+    cap scalar drop __shasum_kvars_strL
     cap scalar drop __shasum_debug
     cap scalar drop __shasum_lpath
     cap scalar drop __shasum_flist
@@ -316,6 +326,7 @@ program clean_all
     cap scalar drop __shasum_lfile
 
     cap matrix drop __shasum_inlens
+    cap matrix drop __shasum_strL
     cap matrix drop __shasum_outlens
     qui mata: mata drop __shasum_addvars
     qui mata: mata drop __shasum_addtypes
@@ -333,9 +344,6 @@ end
 
 if ( inlist("`c(os)'", "MacOSX") | strpos("`c(machine_type)'", "Mac") ) local c_os_ macosx
 else local c_os_: di lower("`c(os)'")
-
-* cap program drop env_set
-* program env_set, plugin using("env_set_`c_os_'.plugin")
 
 cap program drop shasum_plugin
 program shasum_plugin, plugin using("shasum_`c_os_'.plugin")

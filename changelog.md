@@ -1,6 +1,13 @@
 Change Log
 ==========
 
+## shasum-0.2.0 (2018-07-25)
+
+### Features
+
+- Added support for strL variables.
+- Updated plugin to use SPI 3.0 by defaut.
+
 ## shasum-0.1.4 (2018-05-13)
 
 ### Features

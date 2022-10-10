@@ -3,10 +3,10 @@
 * Program: tests.do
 * Author:  Mauricio Caceres Bravo <mauricio.caceres.bravo@gmail.com>
 * Created: Sun May  6 12:23:55 EDT 2018
-* Updated: Mon May  7 14:04:07 EDT 2018
+* Updated: Sun Oct 09 20:04:09 EDT 2022
 * Purpose: Unit tests for shasum
-* Version: 0.1.4
-* Manual:  help shasu
+* Version: 0.2.0
+* Manual:  help shasum
 
 version 13
 clear all
@@ -83,6 +83,25 @@ program main
         gen fpath = "src/tests/"
         shasum fpath fname, `gens' filelist path(../)
         check_hashes list of paths and files
+
+    * File list hashing - strL
+    * ------------------------
+
+    disp _n(2) "{hline 80}" _n(1) "File list hashing - strL" _n(2)
+
+    clear
+    qui import delimited `"../src/tests/meta_hashes.csv"', varn(1) clear
+        gen strL fbinary = ""
+        forvalues i = 1 / `=_N' {
+            replace fbinary = fileread(`"../src/tests/`=fname[`i']'"') in `i'
+        }
+        cap shasum fbinary, `gens'
+        if ( `c(stata_version)' < 14 ) {
+            assert _rc == 17002
+        }
+        else {
+            check_hashes list of files (strL)
+        }
 
     * Individual file hashing
     * -----------------------

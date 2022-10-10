@@ -1,4 +1,14 @@
 # ---------------------------------------------------------------------
+# shasum flags
+
+SPI = 3.0
+CFLAGS = -Wall -O3 $(OSFLAGS)
+
+# build.py
+# src/tests.do
+# src/shasum.c
+
+# ---------------------------------------------------------------------
 # OS parsing
 
 INCLUDE=
@@ -10,8 +20,7 @@ ifeq ($(OS),Windows_NT)
 	# SSL = -l:$(LIBSSL) -l:$(LIBCRYPTO)
 	#
 	OSFLAGS = -shared
-	OUT = build/shasum_windows.plugin
-	OUTE = build/env_set_windows.plugin
+	OUT = lib/plugin/shasum_windows.plugin
 	# GCC = x86_64-w64-mingw32-gcc-5.4.0.exe
 	GCC = x86_64-w64-mingw32-gcc.exe
 else
@@ -24,8 +33,7 @@ else
 		# SSL = -l:$(LIBSSL) -l:$(LIBCRYPTO)
 		#
 		OSFLAGS = -shared -fPIC -DSYSTEM=OPUNIX
-		OUT = build/shasum_unix.plugin
-		OUTE = build/env_set_unix.plugin
+		OUT = lib/plugin/shasum_unix.plugin
 	endif
 	ifeq ($(UNAME_S),Darwin)
 		LIBSSL = libssl.a
@@ -35,22 +43,15 @@ else
 		# SSL = -l:$(LIBSSL) -l:$(LIBCRYPTO)
 		#
 		OSFLAGS = -bundle -DSYSTEM=APPLEMAC
-		OUT = build/shasum_macosx$(LEGACY).plugin
-		OUTE = build/env_set_macosx$(LEGACY).plugin
+		OUT = lib/plugin/shasum_macosx.plugin
 	endif
 	GCC = gcc
 endif
 
 # ---------------------------------------------------------------------
-# shasum flags
-
-SPI = 2.0
-CFLAGS = -Wall -O3 $(OSFLAGS)
+# Rules
 
 all: clean links shasum
-
-# ---------------------------------------------------------------------
-# Rules
 
 links:
 	rm -f  src/lib
@@ -63,8 +64,7 @@ shasum: src/shasum.c src/spi/stplugin.c
 	mkdir -p ./lib/plugin
 	mkdir -p ./lib/openssl
 	$(GCC) $(CFLAGS) $(INCLUDE) -o $(OUT)  src/spi/stplugin.c src/shasum.c $(SSL)
-	$(GCC) $(CFLAGS) $(INCLUDE) -o $(OUTE) src/spi/stplugin.c src/env_set.c
-	cp build/*plugin lib/plugin/
+	cp lib/plugin/*plugin build/
 
 .PHONY: clean
 clean:

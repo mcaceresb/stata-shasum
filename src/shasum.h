@@ -99,10 +99,12 @@ struct StataInfo {
     GT_size kvars_targets;
     GT_size kvars_num;
     GT_size kvars_str;
+    GT_size kvars_strL;
     GT_size lpath;
     GT_size lfile;
     //
     GT_size *inlens;
+    GT_size *strL;
     GT_size *outlens;
     GT_size *shalens;
     GT_size *shacodes;
@@ -123,5 +125,17 @@ ST_retcode ssf_hash_filelist (struct StataInfo *st_info, int level);
 ST_retcode ssf_hash_file     (struct StataInfo *st_info, int level);
 void ssf_free (struct StataInfo *st_info);
 
+// Define dummy strl functions to use the same code with SPI 2.0
+#ifndef SF_var_is_strl
+#define SF_var_is_strl(a) 0
+#endif
+
+#ifndef SF_sdatalen
+#define SF_sdatalen(i, j) 0
+#endif
+
+#ifndef SF_strldata
+#define SF_strldata(i, j, s, l) -1
+#endif
 
 #endif /* shasum.h */

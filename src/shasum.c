@@ -2,16 +2,16 @@
  * Program: shasum.c
  * Author:  Mauricio Caceres Bravo <mauricio.caceres.bravo@gmail.com>
  * Created: Sat May  5 20:54:30 EDT 2018
- * Updated: Mon May  7 14:04:01 EDT 2018
+ * Updated: Sun Oct 09 20:04:12 EDT 2022
  * Purpose: Stata plugin for fast hashing
  * Note:    See stata.com/plugins for more on Stata plugins
- * Version: 0.1.4
+ * Version: 0.2.1
  *********************************************************************/
 
 /**
  * @file shasum.c
  * @author Mauricio Caceres Bravo
- * @date 07 May 2018
+ * @date 09 Oct 2022
  * @brief Stata plugin
  *
  * This file should only ever be called from shasum.ado
@@ -98,6 +98,7 @@ ST_retcode ssf_parse_info (struct StataInfo *st_info, int level)
             kvars_sources,
             kvars_num,
             kvars_str,
+            kvars_strL,
             lpath,
             lfile;
 
@@ -128,6 +129,7 @@ ST_retcode ssf_parse_info (struct StataInfo *st_info, int level)
     if ( (rc = sf_scalar_size("__shasum_kvars_targets",  &kvars_targets) )) goto exit;
     if ( (rc = sf_scalar_size("__shasum_kvars_num",      &kvars_num)     )) goto exit;
     if ( (rc = sf_scalar_size("__shasum_kvars_str",      &kvars_str)     )) goto exit;
+    if ( (rc = sf_scalar_size("__shasum_kvars_strL",     &kvars_strL)    )) goto exit;
     if ( (rc = sf_scalar_size("__shasum_lpath",          &lpath)         )) goto exit;
     if ( (rc = sf_scalar_size("__shasum_lfile",          &lfile)         )) goto exit;
 
@@ -138,12 +140,16 @@ ST_retcode ssf_parse_info (struct StataInfo *st_info, int level)
 
     // Parse matrices
     st_info->inlens   = calloc(kvars_sources, sizeof st_info->inlens);
+    st_info->strL     = calloc(kvars_sources, sizeof st_info->strL);
     st_info->outlens  = calloc(kvars_targets, sizeof st_info->outlens);
     st_info->shacodes = calloc(kvars_targets, sizeof st_info->shacodes);
     st_info->shalens  = calloc(kvars_targets, sizeof st_info->shalens);
 
     if ( st_info->inlens  == NULL ) {
-        return (sf_oom_error("ssf_parse_info", "st_info->inlens "));
+        return (sf_oom_error("ssf_parse_info", "st_info->inlens"));
+    }
+    if ( st_info->strL  == NULL ) {
+        return (sf_oom_error("ssf_parse_info", "st_info->strL"));
     }
     if ( st_info->outlens == NULL ) {
         return (sf_oom_error("ssf_parse_info", "st_info->outlens"));
@@ -155,6 +161,7 @@ ST_retcode ssf_parse_info (struct StataInfo *st_info, int level)
         return (sf_oom_error("ssf_parse_info", "st_info->shalens"));
     }
 
+    if ( (rc = sf_get_vector_size ("__shasum_strL",     st_info->strL)     )) goto exit;
     if ( (rc = sf_get_vector_size ("__shasum_inlens",   st_info->inlens)   )) goto exit;
     if ( (rc = sf_get_vector_size ("__shasum_outlens",  st_info->outlens)  )) goto exit;
     if ( (rc = sf_get_vector_size ("__shasum_shacodes", st_info->shacodes) )) goto exit;
@@ -252,6 +259,7 @@ ST_retcode ssf_parse_info (struct StataInfo *st_info, int level)
     st_info->kvars_targets = kvars_targets;
     st_info->kvars_num     = kvars_num;
     st_info->kvars_str     = kvars_str;
+    st_info->kvars_strL    = kvars_strL;
     st_info->lpath         = lpath;
     st_info->lfile         = lfile;
 
@@ -273,14 +281,16 @@ ST_retcode ssf_read_varlist (struct StataInfo *st_info, int level)
 {
     ST_retcode rc = 0;
     ST_double z;
+    GT_int bytes;
     GT_size i, k, sel, obs;
 
     GT_size rowbytes   = st_info->rowbytes;
     GT_size N          = st_info->N;
     GT_size in1        = st_info->in1;
     GT_size ksources   = st_info->kvars_sources;
-    // GT_size kstr       = st_info->kvars_str;
     // GT_size knum       = st_info->kvars_num;
+    // GT_size kstr       = st_info->kvars_str;
+    // GT_size kstrL      = st_info->kvars_strL;
     GT_size *positions = st_info->positions;
 
     if ( st_info->file ) {
@@ -331,12 +341,24 @@ ST_retcode ssf_read_varlist (struct StataInfo *st_info, int level)
             for (i = 0; i < N; i++) {
                 if ( SF_ifobs(i + in1) ) {
                     for (k = 0; k < ksources; k++) {
-                        if ( st_info->inlens[k] > 0 ) {
+                        if ( st_info->strL[k] ) {
+                            bytes = SF_sdatalen(k + 1, i + in1);
+                            if ( bytes > 0 ) {
+                                st_info->rowix[obs] += bytes;
+                                if ( SF_strldata(k + 1, i + in1, st_info->st_charx + sel, bytes + 1) == -1 ) {
+                                    rc = -1;
+                                    goto exit;
+                                }
+                                sel += bytes;
+                            }
+                        }
+                        else if ( st_info->inlens[k] > 0 ) {
                             if ( (rc = SF_sdata(k + 1, i + in1, st_info->st_charx + sel)) ) {
                                 goto exit;
                             }
-                            st_info->rowix[obs] += strlen(st_info->st_charx + sel);
-                            sel += strlen(st_info->st_charx + sel);
+                            bytes = strlen(st_info->st_charx + sel);
+                            st_info->rowix[obs] += bytes;
+                            sel += bytes;
                         }
                         else {
                             if ( (rc = SF_vdata(k + 1, i + in1, &z)) ) {
@@ -356,13 +378,25 @@ ST_retcode ssf_read_varlist (struct StataInfo *st_info, int level)
         else {
             for (i = 0; i < N; i++) {
                 for (k = 0; k < ksources; k++) {
-                    if ( st_info->inlens[k] > 0 ) {
+                    if ( st_info->strL[k] ) {
+                        bytes = SF_sdatalen(k + 1, i + in1);
+                        if ( bytes > 0 ) {
+                            st_info->rowix[obs] += bytes;
+                            if ( SF_strldata(k + 1, i + in1, st_info->st_charx + sel, bytes + 1) == -1 ) {
+                                rc = -1;
+                                goto exit;
+                            }
+                            sel += bytes;
+                        }
+                    }
+                    else if ( st_info->inlens[k] > 0 ) {
                         if ( (rc = SF_sdata(k + 1, i + in1, st_info->st_charx + sel)) ) {
                             goto exit;
                         }
                         // printf("debug %lu: %s\n", i, st_info->st_charx + sel);
-                        st_info->rowix[obs] += strlen(st_info->st_charx + sel);
-                        sel += strlen(st_info->st_charx + sel);
+                        bytes = strlen(st_info->st_charx + sel);
+                        st_info->rowix[obs] += bytes;
+                        sel += bytes;
                     }
                     else {
                         if ( (rc = SF_vdata(k + 1, i + in1, &z)) ) {
@@ -385,7 +419,16 @@ ST_retcode ssf_read_varlist (struct StataInfo *st_info, int level)
                 if ( SF_ifobs(i + in1) ) {
                     for (k = 0; k < ksources; k++) {
                         sel = obs * rowbytes + positions[k];
-                        if ( st_info->inlens[k] > 0 ) {
+                        if ( st_info->strL[k] ) {
+                            bytes = SF_sdatalen(k + 1, i + in1);
+                            if ( bytes > 0 ) {
+                                if ( SF_strldata(k + 1, i + in1, st_info->st_charx + sel, bytes + 1) == -1 ) {
+                                    rc = -1;
+                                    goto exit;
+                                }
+                            }
+                        }
+                        else if ( st_info->inlens[k] > 0 ) {
                             if ( (rc = SF_sdata(k + 1, i + in1, st_info->st_charx + sel)) ) {
                                 goto exit;
                             }
@@ -406,7 +449,16 @@ ST_retcode ssf_read_varlist (struct StataInfo *st_info, int level)
             for (i = 0; i < N; i++) {
                 for (k = 0; k < ksources; k++) {
                     sel = obs * rowbytes + positions[k];
-                    if ( st_info->inlens[k] > 0 ) {
+                    if ( st_info->strL[k] ) {
+                        bytes = SF_sdatalen(k + 1, i + in1);
+                        if ( bytes > 0 ) {
+                            if ( SF_strldata(k + 1, i + in1, st_info->st_charx + sel, bytes + 1) == -1 ) {
+                                rc = -1;
+                                goto exit;
+                            }
+                        }
+                    }
+                    else if ( st_info->inlens[k] > 0 ) {
                         if ( (rc = SF_sdata(k + 1, i + in1, st_info->st_charx + sel)) ) {
                             goto exit;
                         }
@@ -542,6 +594,7 @@ ST_retcode ssf_hash_varlist (struct StataInfo *st_info, int level)
             }
         }
 
+        // selrow += rowlen + st_info->concat? st_info->strL[k] + 1: 0;
         selrow += rowlen + st_info->concat;
     }
 

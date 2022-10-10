@@ -1,5 +1,5 @@
-shasum 
-=======
+shasum
+======
 
 Fast cryptographic hashing in Stata.
 
@@ -7,15 +7,14 @@ This package provides a C wrapper for the hash functions (checksums)
 in the OpenSSL library, namely MD5, SHA1, SHA224, SHA256, SHA384, and
 SHA512.
 
-`version 0.1.4 13May2018`
+`version 0.2.1 09Oct2022`
 
 Installation
 ------------
 
-I only have access to Stata 13.1, so I impose that to be the minimum.
 ```stata
 local github "https://raw.githubusercontent.com"
-net install shasum, from(`github'/mcaceresb/stata-shasum/master/build/)
+net install shasum, from(`github'/mcaceresb/stata-shasum/master/build)
 * adoupdate, update
 * ado uninstall shasum
 ```
@@ -96,6 +95,7 @@ For OSX, for example,
 ```sh
 git clone git://git.openssl.org/openssl.git
 cd openssl
+git checkout OpenSSL_1_1_1q
 ./Configure darwin64-x86_64-cc
 export KERNEL_BITS=64
 ./config
@@ -107,6 +107,22 @@ Then you can run
 cd ../stata-shasum
 make LIBPATH=../openssl INCLUDE=-I../openssl/include
 ```
+
+Finally, from Stata (repalce ```c(pwd)'`` with the path to where you cloned the repo):
+```stata
+cap noi ado uninstall shasum
+cap noi net uninstall shasum
+net install shasum, from(`c(pwd)'/stata-shasum/build) replace
+```
+
+Notes
+-----
+
+- I compile version 1.1.1 of OpenSSL; this plugin may not be
+  compatible with the latest version 3.0; see #2 for more.
+
+- If you have an older stata version (14.0 or earlier) then
+  compile the Stata plugin using `make SPI=2.0`.
 
 License
 -------

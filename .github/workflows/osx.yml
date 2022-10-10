@@ -1,0 +1,47 @@
+# Compile and pull osx plugin
+
+name: osx
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
+    branches: [ master ]
+jobs:
+  build:
+    name: Compile and Push Plugin
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build Plugin
+        run: |
+          # brew install xx
+          git clone git://git.openssl.org/openssl.git
+          cd openssl
+          git checkout OpenSSL_1_1_1q
+          ./Configure darwin64-x86_64-cc
+          export KERNEL_BITS=64
+          ./config
+          make
+          cd ..
+          make clean && make all LIBPATH=openssl INCLUDE=-Iopenssl/include
+      - name: Commit OSX Plugin
+        run: |
+          shasum lib/plugin/shasum_macosx.plugin
+          #
+          otool -L lib/plugin/shasum_macosx.plugin
+          #
+          cp -f lib/plugin/shasum_macosx.plugin build/shasum_macosx.plugin
+          #
+          git config --global user.name 'Mauricio Caceres'
+          git config --global user.email 'mauricio.caceres.bravo@gmail.com'
+          git remote set-url origin https://x-access-token:${{ secrets.COMPILE_TOKEN }}@github.com/${{ github.repository }}
+          #
+          git add build/shasum_macosx.plugin
+          git add lib/plugin/shasum_macosx.plugin
+          #
+          echo ${GITHUB_REF##*/}
+          [ -n "$(git status --porcelain)" ] && git commit -m "[Automated Commit] OSX plugin"
+          git fetch
+          git push -f origin HEAD:${GITHUB_REF##*/}

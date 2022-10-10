@@ -1,10 +1,11 @@
 {smcl}
-{* *! version 0.1.4 13May2018}{...}
+{* *! version 0.2.1 09Oct2022}{...}
 {viewerdialog shasum "dialog shasum"}{...}
 {vieweralsosee "[R] shasum" "mansection R shasum"}{...}
 {viewerjumpto "Syntax" "shasum##syntax"}{...}
 {viewerjumpto "Description" "shasum##description"}{...}
 {viewerjumpto "Options" "shasum##options"}{...}
+{viewerjumpto "Stored results" "shasum##results"}{...}
 {viewerjumpto "Examples" "shasum##examples"}{...}
 {title:Title}
 
@@ -15,6 +16,8 @@
 {marker syntax}{...}
 {title:Syntax}
 
+To hash a variable list or a list of files:
+
 {p 8 15 2}
 {cmd:shasum}
 {varlist}
@@ -24,12 +27,18 @@
 ({newvar})
 {it:{help shasum##shasum_options:shasum_options}}]
 
+To hash a single file
+
+{p 8 15 2}
+{cmd:shasum}
+{cmd:,}
+file(str, {it:{help shasum##shasum_fhash:shasum_hash}})
+
 {synoptset 18 tabbed}{...}
 {marker shasum_hash}{...}
-{marker shasum_options}{...}
 {synopthdr}
 {synoptline}
-{syntab:Hash}
+{syntab:Hash varlist of file list}
 {synopt :{opth md5(newvar)}}    Store 128-bit MD5 hash of {it:varlist} in {it:md5} (32 hex characters)
 {p_end}
 {synopt :{opth sha1(newvar)}}   Store 160-bit SHA1 hash of {it:varlist} in {it:sha1} (40 hex characters)
@@ -43,7 +52,16 @@
 {synopt :{opth sha512(newvar)}} Store 512-bit SHA512 hash of {it:varlist} in {it:sha512} (128 hex characters)
 {p_end}
 
-{syntab:Extras}
+{syntab:Hash single file}
+{synopt :{opt file(str, hash)}} File to hash, where {it:hash} is md5, sha1, sha224, sha256, sha384, or sha512
+{p_end}
+
+{marker shasum_options}{...}
+{syntab:Options}
+{synopt :{opt filelist}} Specifies that {it:varlist} is a list of files to be hashed.
+{p_end}
+{synopt :{opth path(str)}} Prepend {opt path} to the file or list of files to hash.
+{p_end}
 {synopt :{opt pad}} Pad strings with null characters.
 {p_end}
 {synopt :{opt licenses}} Print open source licenses.
@@ -59,6 +77,22 @@
 This package provides a wrapper for the hash functions (checksums)
 in the OpenSSL library, namely MD5, SHA1, SHA224, SHA256, SHA384, and
 SHA512 using C plugins.
+
+{marker results}{...}
+{title:Stored results}
+
+{pstd}
+{cmd:shasum} with the option {opt file()} stores the following in {cmd:r()}:
+
+{synoptset 20 tabbed}{...}
+{p2col 5 15 19 2: Macros}{p_end}
+{synopt:{cmd:r(md5)}}    128-bit MD5 hash of {it:file} {p_end}
+{synopt:{cmd:r(sha1)}}   160-bit SHA1 hash of {it:file} {p_end}
+{synopt:{cmd:r(sha224)}} 224-bit SHA224 hash of {it:file} {p_end}
+{synopt:{cmd:r(sha256)}} 256-bit SHA256 hash of {it:file} {p_end}
+{synopt:{cmd:r(sha384)}} 384-bit SHA384 hash of {it:file} {p_end}
+{synopt:{cmd:r(sha512)}} 512-bit SHA512 hash of {it:file} {p_end}
+{p2colreset}{...}
 
 {marker example}{...}
 {title:Examples}
@@ -84,17 +118,25 @@ not quite the same length, since the null character doesn't count for
 almost any other intents and purposes, but it does change the hash).{p_end}
 {phang2}{cmd:. shasum make, sha1(make_sha1_pad) pad}{p_end}
 
-{pstd}You can also compute the hash of a list of files!{p_end}
-{phang2}{cmd:. clear}{p_end}
-{phang2}{cmd:. set obs 1}{p_end}
-{phang2}{cmd:. findfile auto.dta}{p_end}
-{phang2}{cmd:. gen y = `"`r(fn)'"'}{p_end}
-{phang2}{cmd:. shasum y, sha1(shay)  filelist}{p_end}
-{phang2}{cmd:. list}{p_end}
+{pstd}You can also compute the hash of a file{p_end}
+{phang2}{cmd:. findfile auto.dta          }{p_end}
+{phang2}{cmd:. shasum, file(`r(fn)', sha1)}{p_end}
+{phang2}{cmd:. return list                }{p_end}
+{phang2}{cmd:. local sha1 = `"`r(sha1)'"' }{p_end}
+
+{pstd}Or a list of files{p_end}
+{phang2}{cmd:. clear                              }{p_end}
+{phang2}{cmd:. set obs 1                          }{p_end}
+{phang2}{cmd:. findfile auto.dta                  }{p_end}
+{phang2}{cmd:. gen y = `"`r(fn)'"'                }{p_end}
+{phang2}{cmd:. shasum y, sha1(shay)  filelist     }{p_end}
+{phang2}{cmd:. assert `"`=shay[1]'"' == `"`sha1'"'}{p_end}
+{phang2}{cmd:. list                               }{p_end}
 
 {pstd}For files, you can pass the path in parts. If variable x contains
 "folder/" and variable y contains "file.ext", then you can do:{p_end}
 {phang2}{cmd:. shasum x y, sha1(shay) filelist path(/path/to/folder/)}{p_end}
+{phang2}{cmd:. shasum, file(name, sha1) path(/path/to/folder/)}{p_end}
 
 {pstd}Note that shasum won't add path delimiters, so they must end in
 "/" or the file won't be found.{p_end}

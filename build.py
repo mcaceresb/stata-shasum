@@ -5,7 +5,7 @@
 # Program: build.py
 # Author:  Mauricio Caceres Bravo <mauricio.caceres.bravo@gmail.com>
 # Created: Sat May  5 20:54:30 EDT 2018
-# Updated: Mon May  7 10:42:57 EDT 2018
+# Updated: Sun Oct 09 20:04:00 EDT 2022
 # Purpose: Main build file for shasum (copies contents into ./build and
 #          puts a .zip file in ./releases)
 
@@ -153,7 +153,7 @@ if args['stata'] is not None:
     statargs = "-b do" if args['stata_args'] is None else args['stata_args'][0]
     statado  = '"{0}" {1}'.format(stataexe, statargs)
 elif which("stata") is None:
-    statadir = path.expanduser("~/.local/stata13")
+    statadir = path.expanduser("~/.local/stata14")
     stataexe = path.join(statadir, "stata")
     statargs = "-b do" if args['stata_args'] is None else args['stata_args']
     statado  = '"{0}" {1}'.format(stataexe, statargs)
@@ -175,9 +175,9 @@ tmpupdate = path.join(tmpdir, ".update_shasum.do")
 
 if platform in ["linux", "linux2", "win32", "cygwin", "darwin"]:
     print("Trying to compile plugins for -shasum-")
-    print("(note: this assumes you copied libssl.dll and libcrypto.dll to lib/windows)")
+    print("(note: this assumes you copied libssl.a and libcrypto.a to lib/openssl/windows)")
     make_flags = args['make_flags'][0] if args['make_flags'] is not None else ""
-    rc = system("make {0}".format(make_flags))
+    rc = system("make all {0}".format(make_flags))
     print("Success!" if rc == 0 else "Failed.")
 else:
     print("Don't know platform '{0}'; compile manually.".format(platform))
@@ -208,9 +208,7 @@ with open(path.join("src", "shasum.ado"), 'r') as f:
 
 plugins = ["shasum_unix.plugin",
            "shasum_windows.plugin",
-           "shasum_macosx.plugin",
-           "libssl.dll",
-           "libcrypto.dll"]
+           "shasum_macosx.plugin"]
 plugbak = plugins[:]
 for plug in plugbak:
     if not path.isfile(path.join("build", plug)):
@@ -280,7 +278,7 @@ if args["replace"]:
             f.write(linesep)
             f.write("cap net uninstall shasum")
             f.write(linesep)
-            f.write("net install shasum, from($builddir)")
+            f.write("net install shasum, from($builddir) replace")
             f.write(linesep)
 
         chdir(statadir)
