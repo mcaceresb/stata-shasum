@@ -19,7 +19,7 @@ jobs:
           # brew install xx
           git clone git://git.openssl.org/openssl.git
           cd openssl
-          git checkout OpenSSL_1_1_1q
+          git checkout OpenSSL_1_1_1-stable
           ./Configure darwin64-x86_64-cc
           export KERNEL_BITS=64
           ./config

@@ -35,7 +35,8 @@ config_files = [
     ('src/shasum.pkg', 'd Distribution-Date: {date:%Y%m%d}'),
     ('src/stata.toc', 'v {major}.{minor}.{patch}'),
     ('docs/shasum.sthlp', 'version {major}.{minor}.{patch} {date:%d%b%Y}'),
-    ('src/shasum.ado', 'version {major}.{minor}.{patch} {date:%d%b%Y}')
+    ('src/shasum.ado', 'version {major}.{minor}.{patch} {date:%d%b%Y}'),
+    ('../src/tests.do', 'version {major}.{minor}.{patch}')
 ]
 
 config_build = {

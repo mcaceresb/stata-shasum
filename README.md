@@ -12,6 +12,10 @@ SHA512.
 Installation
 ------------
 
+Pre-compiled binaries are provided, but it is possible you will have
+to compile the plugin yourself (in particular in OSX). If the function
+fails, see the [compiling section below](#compiling).
+
 ```stata
 local github "https://raw.githubusercontent.com"
 net install shasum, from(`github'/mcaceresb/stata-shasum/master/build)
@@ -95,7 +99,7 @@ For OSX, for example,
 ```sh
 git clone git://git.openssl.org/openssl.git
 cd openssl
-git checkout OpenSSL_1_1_1q
+git checkout OpenSSL_1_1_1-stable
 ./Configure darwin64-x86_64-cc
 export KERNEL_BITS=64
 ./config
@@ -119,7 +123,7 @@ Notes
 -----
 
 - I compile version 1.1.1 of OpenSSL; this plugin may not be
-  compatible with the latest version 3.0; see #2 for more.
+  compatible with the latest version 3.0; see [issue #2](https://github.com/mcaceresb/stata-shasum/issues/2) for more.
 
 - If you have an older stata version (14.0 or earlier) then
   compile the Stata plugin using `make SPI=2.0`.

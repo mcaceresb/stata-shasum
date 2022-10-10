@@ -275,6 +275,11 @@ program parse_types, rclass
         }
     }
 
+    if ( `kstrL' & `c(stata_version)' < 14.1 ) {
+        disp as err "strL variables not supported in this version of Stata"
+        exit 17002
+    }
+
     cap assert `kvars' == `:list sizeof varlist'
     if ( _rc ) {
         di as err "Error parsing syntax call; variable list was:" ///

@@ -5,10 +5,10 @@
 * Created: Sun May  6 12:23:55 EDT 2018
 * Updated: Sun Oct 09 20:04:09 EDT 2022
 * Purpose: Unit tests for shasum
-* Version: 0.2.0
+* Version: 0.2.1
 * Manual:  help shasum
 
-version 13
+version 14.2
 clear all
 set more off
 set varabbrev off
@@ -95,8 +95,8 @@ program main
         forvalues i = 1 / `=_N' {
             replace fbinary = fileread(`"../src/tests/`=fname[`i']'"') in `i'
         }
-        cap shasum fbinary, `gens'
-        if ( `c(stata_version)' < 14 ) {
+        cap noi shasum fbinary, `gens'
+        if ( `c(stata_version)' < 14.1 ) {
             assert _rc == 17002
         }
         else {
