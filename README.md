@@ -88,13 +88,13 @@ your path, run
 ```sh
 git clone https://github.com/mcaceresb/stata-shasum
 cd stata-shasum
-make
+make SSL="-lssl -lcrypto"
 ```
 
-On Linux and OSX, if you don't have the static version of OpenSSL it's
-very easy to compile them from source by following the instructions
-[here](https://wiki.openssl.org/index.php/Compilation_and_Installation).
-For OSX, for example,
+This only works if you have OpenSSL installed. If you don't (or if you
+get any errors) then you can compile a static version of OpenSSL. This
+is fairly straightforward on Linux and OSX by following the instructions
+[here](https://wiki.openssl.org/index.php/Compilation_and_Installation). For OSX, for example,
 
 ```sh
 git clone git://git.openssl.org/openssl.git
@@ -112,7 +112,9 @@ cd ../stata-shasum
 make LIBPATH=../openssl INCLUDE=-I../openssl/include
 ```
 
-Finally, from Stata (repalce ```c(pwd)'`` with the path to where you cloned the repo):
+In either case, once you have compiled the plugin you need
+to install (or re-install) the  package. From Stata (replacing
+`` `c(pwd)' `` with the path to where you cloned the repo):
 ```stata
 cap noi ado uninstall shasum
 cap noi net uninstall shasum

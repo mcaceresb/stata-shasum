@@ -64,7 +64,7 @@ shasum: src/shasum.c src/spi/stplugin.c
 	mkdir -p ./lib/plugin
 	mkdir -p ./lib/openssl
 	$(GCC) $(CFLAGS) $(INCLUDE) -o $(OUT)  src/spi/stplugin.c src/shasum.c $(SSL)
-	cp lib/plugin/*plugin build/
+	cp lib/plugin/shasum*plugin build/
 
 .PHONY: clean
 clean:
