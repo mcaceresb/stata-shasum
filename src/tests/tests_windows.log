@@ -2,10 +2,10 @@
       name:  shasum_tests
        log:  C:\cygwin64\home\mauricio\shasum\build\tests_windows.log
   log type:  text
- opened on:  16 May 2018, 09:27:58
+ opened on:   9 Oct 2022, 19:01:13
 
 
-Start:        09:27:58 16 May 2018
+Start:        19:01:13  9 Oct 2022
 OS:           Windows
 Machine Type: PC (64-bit x86-64)
 
@@ -79,6 +79,26 @@ Checking hashes for list of paths and files
 
 
 --------------------------------------------------------------------------------
+File list hashing - strL
+
+
+(4 missing values generated)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+(1 real change made)
+
+Checking hashes for list of files (strL)
+
+    shasum_test (passed): md5
+    shasum_test (passed): sha1
+    shasum_test (passed): sha224
+    shasum_test (passed): sha256
+    shasum_test (passed): sha384
+    shasum_test (passed): sha512
+
+
+--------------------------------------------------------------------------------
 File hashing
 
 
@@ -118,3 +138,9 @@ make2_hashes_pad.csv
 . 
 end of do-file
 
+. log close _all
+      name:  shasum_tests
+       log:  C:\cygwin64\home\mauricio\shasum\build\tests_windows.log
+  log type:  text
+ closed on:   9 Oct 2022, 19:01:14
+------------------------------------------------------------------------------------------------------------
