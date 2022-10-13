@@ -5,9 +5,11 @@ Fast cryptographic hashing in Stata.
 
 This package provides a C wrapper for the hash functions (checksums)
 in the OpenSSL library, namely MD5, SHA1, SHA224, SHA256, SHA384, and
-SHA512.
+SHA512. It also includes a short wrapper for Python's hashlib functions
+(Stata 16+ only; this is specially convenient if you have difficulty
+compiling the plugin).
 
-`version 0.2.1 09Oct2022`
+`version 0.2.2 11Oct2022`
 
 Installation
 ------------
@@ -38,6 +40,12 @@ shasum make make, sha1(makemake_sha1)
 * hash them. Rather, we hash the double-precision 64-bit representation
 * of each number.
 shasum make price, sha1(makeprice_sha1)
+
+* Use Python's hashlib
+pyhash make make,  hashes(sha1) gen(makemake_pysha1)
+pyhash make price, hashes(sha1) gen(makeprice_pysha1)
+assert makemake_pysha1  == makemake_sha1 
+assert makeprice_pysha1 == makeprice_sha1
 
 * Pad strings to be the same length. By default, we concatenate strings.
 * So if you want to hash "a" and "hello", you can padd "a" with null

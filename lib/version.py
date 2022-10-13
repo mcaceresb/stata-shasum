@@ -24,8 +24,8 @@ args = vars(parser.parse_args())
 # Config
 
 config_token   = "CrossPlatformCompatibilityCookie"
-config_version = "0.2.1"
-config_date = date(2022, 10, 9)
+config_version = "0.2.2"
+config_date = date(2022, 10, 11)
 config_files = [
     ('lib/version.py', 'config_version = "{major}.{minor}.{patch}"'),
     ('lib/version.py', f'config_date = date({{date:%Y, {config_token}%m, {config_token}%d}})'),
@@ -34,9 +34,11 @@ config_files = [
     ('src/shasum.pkg', 'v {major}.{minor}.{patch}'),
     ('src/shasum.pkg', 'd Distribution-Date: {date:%Y%m%d}'),
     ('src/stata.toc', 'v {major}.{minor}.{patch}'),
+    ('docs/pyhash.sthlp', 'version {major}.{minor}.{patch} {date:%d%b%Y}'),
+    ('src/pyhash.ado', 'version {major}.{minor}.{patch} {date:%d%b%Y}'),
     ('docs/shasum.sthlp', 'version {major}.{minor}.{patch} {date:%d%b%Y}'),
     ('src/shasum.ado', 'version {major}.{minor}.{patch} {date:%d%b%Y}'),
-    ('../src/tests.do', 'version {major}.{minor}.{patch}')
+    ('src/tests.do', 'Version: {major}.{minor}.{patch}')
 ]
 
 config_build = {
@@ -46,6 +48,8 @@ config_build = {
         'files': [
             'src/shasum.ado',
             'docs/shasum.sthlp',
+            'src/pyhash.ado',
+            'docs/pyhash.sthlp',
             'src/stata.toc',
             'src/shasum.pkg',
             'src/tests.do',

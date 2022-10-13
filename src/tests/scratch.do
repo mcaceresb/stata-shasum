@@ -229,5 +229,19 @@ end
 *     }
 * }
 
-* The actual plugin
-* -----------------
+* Plugin vs python
+* ----------------
+
+sysuse auto, clear
+gen byte test = mod(_n, 2)
+pyhash price make test headroom, gen(pymd5 py256) hash(md5 sha256)
+shasum price make test headroom, md5(statamd5) sha256(stata256)
+assert pymd5 == statamd5
+assert py256 == stata256
+
+pyhash price make headroom if test, gen(pymd5 py1 py256) hash(md5 sha1 sha256) replace
+drop stata*
+shasum price make headroom if test, md5(statamd5) sha1(stata1) sha256(stata256)
+assert pymd5 == statamd5
+assert py1   == stata1
+assert py256 == stata256

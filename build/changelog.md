@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+## shasum-0.2.2 (2022-10-13)
+
+### Features
+
+- `pyhash` for hashing using Python
+
 ## shasum-0.2.1 (2022-09-22)
 
 ### Features

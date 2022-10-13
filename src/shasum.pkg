@@ -1,4 +1,4 @@
-v 0.2.1
+v 0.2.2
 d
 d 'SHASUM': Wrapper for various cryptographic hashes from OpenSSL
 d
@@ -22,8 +22,10 @@ d
 d Author: Mauricio Caceres Bravo
 d Support: email mauricio.caceres.bravo@gmail.com
 d
-d Distribution-Date: 20221009
+d Distribution-Date: 20221011
 d
+f pyhash.ado
+f pyhash.sthlp
 f shasum.ado
 f shasum.sthlp
 f shasum_unix.plugin

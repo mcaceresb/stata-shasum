@@ -1,4 +1,4 @@
-*! version 0.2.1 09Oct2022 Mauricio Caceres Bravo, mauricio.caceres.bravo@gmail.com
+*! version 0.2.2 11Oct2022 Mauricio Caceres Bravo, mauricio.caceres.bravo@gmail.com
 *! Wrapper for OpenSSL's MD5, SHA1, SHA224, SHA256, SHA384, and SHA512
 
 capture program drop shasum
