@@ -6,8 +6,8 @@ Fast cryptographic hashing in Stata.
 This package provides a C wrapper for the hash functions (checksums)
 in the OpenSSL library, namely MD5, SHA1, SHA224, SHA256, SHA384, and
 SHA512. It also includes a short wrapper for Python's hashlib functions
-(Stata 16+ only; this is specially convenient if you have difficulty
-compiling the plugin).
+(python is only available from Stata 16+, but this is specially convenient
+if you have difficulty compiling the plugin).
 
 `version 0.2.2 11Oct2022`
 
@@ -87,7 +87,7 @@ To compile, you will need
 - The GNU compiler collection (gcc)
 - git
 - OpenSSL
-- Cygwin (on Windows) with gcc, make, x86_64-w64-mingw32-gcc-5.4.0.exe, and OpenSSL (Cygwin is pretty massive by default; I would install only those packages).
+- Cygwin (on Windows) with `binutils`, `make`, `cmake`, `gcc-core`, `gcc-g++`, `mingw64-x86_64-gcc-core`, `mingw64-x86_64-gcc-g++` and OpenSSL (Cygwin is pretty massive by default; I would install only those packages).
 
 From OpenSSL, you need, in particular, `libssl.a` and `libcrypto.a`
 as well as the headers `md5.h` and `sha.h` If you have all this in
@@ -102,7 +102,7 @@ make SSL="-lssl -lcrypto"
 This only works if you have OpenSSL installed. If you don't (or if you
 get any errors) then you can compile a static version of OpenSSL. This
 is fairly straightforward on Linux and OSX by following the instructions
-[here](https://wiki.openssl.org/index.php/Compilation_and_Installation). For OSX, for example,
+[here](https://wiki.openssl.org/index.php/Compilation_and_Instillation). For non-silicon OSX, for example,
 
 ```sh
 git clone git://git.openssl.org/openssl.git

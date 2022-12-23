@@ -15,14 +15,14 @@
 {marker syntax}{...}
 {title:Syntax}
 
-To hash a variable list or a list of files:
+Hash a variable list or a string:
 
 {p 8 15 2}
 {cmd:pyhash}
-{varlist}
+[{varlist}]
 {ifin}
 {cmd:,}
-gen({varlist}) hash({it:hashes})
+hash({it:hashes}) [gen({varlist}) string(str)]
 
 {synoptset 18 tabbed}{...}
 {marker pyhash_hash}{...}
@@ -32,9 +32,11 @@ gen({varlist}) hash({it:hashes})
 {syntab:Options}
 {synopt :{opt hash:es(str)}} Hashes to use (any combination of hashes available in Python's hashlib are allowed)
 {p_end}
-{synopt :{opth gen:erate(str)}} Variables where to store the hashes.
+{synopt :{opth gen:erate(str)}} Variables where to store the hashes; only with varlist.
 {p_end}
 {synopt :{opt replace}} Replace variables if they exist.
+{p_end}
+{synopt :{opt string(str)}} String to hash (read as is into Python string)
 {p_end}
 
 {p2colreset}{...}

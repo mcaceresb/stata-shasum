@@ -80,7 +80,7 @@ program get_dll
 
     cap erase `libcrypto_dll'
     cap copy `"`download'"' `libcrypto_dll'
-    if ( _rc ) {
+ hash   if ( _rc ) {
         di as err "Unable to download `libcrypto_dll' from `download'."
         cd `"`cwd'"'
         exit _rc
@@ -245,3 +245,41 @@ shasum price make headroom if test, md5(statamd5) sha1(stata1) sha256(stata256)
 assert pymd5 == statamd5
 assert py1   == stata1
 assert py256 == stata256
+
+pyhash, hash(md5 sha1 sha256) string(a little brown fox jumped the big fence)
+return list
+* shell printf "a little brown fox jumped the big fence" | sha256sum
+* shell printf "a little brown fox jumped the big fence" | sha1sum
+* shell printf "a little brown fox jumped the big fence" | md5sum
+
+capture program drop hashstring
+program hashstring, rclass
+    version 16
+    syntax anything, string(str asis)
+    local okhashes md5 sha1 sha224 sha256 sha384 sha512
+    foreach hash of local anything {
+        if !`:list hash in okhashes' {
+            disp `"unknown hash '`hash''; allowed: `okhashes'"'
+            exit 198
+        }
+    }
+    tempname frame
+    frame create `frame'
+    frame `frame' {
+        set obs 1
+        mata st_addvar("str" + strofreal(strlen(st_local("string"))), "string")
+        mata st_sstore(1, "string", st_local("string"))
+        local genhash
+        foreach hash of local anything {
+            local genhash `genhash' `hash'(`hash')
+        }
+        shasum string, `genhash'
+        foreach hash of local anything {
+            local `hash' = `hash' 
+            return local `hash': copy local `hash'
+        }
+    }
+    frame drop `frame'
+end
+hashstring md5 sha1 sha256, string(a little brown fox jumped the big fence)
+return list
