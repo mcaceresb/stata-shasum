@@ -266,8 +266,9 @@ program hashstring, rclass
     tempname frame
     frame create `frame'
     frame `frame' {
-        set obs 1
-        mata st_addvar("str" + strofreal(strlen(st_local("string"))), "string")
+        qui set obs 1
+        * mata st_addvar("str" + strofreal(strlen(st_local("string"))), "string")
+        mata st_addvar("strL", "string")
         mata st_sstore(1, "string", st_local("string"))
         local genhash
         foreach hash of local anything {

@@ -64,7 +64,7 @@ program pyhash, rclass
     if `"`string'"' != "" {
         python: from sfi import Macro
         foreach hash of local hashes {
-            python: Macro.setLocal("`hash'", hashlib.`hash'("""`string'""".encode()).hexdigest())
+            python: Macro.setLocal("`hash'", hashlib.`hash'(Macro.getLocal("string").encode()).hexdigest())
             return local `hash': copy local `hash'
         }
     }
