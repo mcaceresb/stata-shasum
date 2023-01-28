@@ -18,7 +18,6 @@ jobs:
         run: |
           echo ${STATA_LIC_17} > stata.lic
           ls -laht stata.lic
-          head -c 20 stata.lic 
           shasum stata.lic
           export VERSION=17
           export TAG=2023-01-10
