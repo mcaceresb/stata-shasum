@@ -14,6 +14,12 @@ set more off
 set varabbrev off
 set seed 1729
 set linesize 108
+if "`c(username)'" == "statauser" {
+    global ROOT /shasum/src/tests
+}
+else {
+    global ROOT ../src/tests
+}
 
 capture program drop main
 program main
@@ -27,7 +33,7 @@ program main
     else {
         local c_os_: di lower("`c(os)'")
     }
-    log using tests_`c_os_'.log, text replace name(shasum_tests)
+    log using ${ROOT}/tests_`c_os_'.log, text replace name(shasum_tests)
 
     local  progname tests
     local  start_time "$S_TIME $S_DATE"
@@ -39,6 +45,9 @@ program main
 
     * Tests
     * -----
+
+    cap which shasum
+    if _rc net install shasum, from(${ROOT}/../../build)
 
     local gens md5(st_md5)       ///
                sha1(st_sha1)     ///
@@ -52,19 +61,19 @@ program main
 
     disp _n(2) "{hline 80}" _n(1) "Varlist hashing" _n(2)
 
-    qui import delimited `"../src/tests/make_hashes.csv"', varn(1) clear
+    qui import delimited `"${ROOT}/make_hashes.csv"', varn(1) clear
         shasum make, `gens'
         check_hashes make not padded
 
-    qui import delimited `"../src/tests/make2_hashes.csv"', varn(1) clear
+    qui import delimited `"${ROOT}/make2_hashes.csv"', varn(1) clear
         shasum make make, `gens'
         check_hashes make make not padded
 
-    qui import delimited `"../src/tests/make_hashes_pad.csv"', varn(1) clear
+    qui import delimited `"${ROOT}/make_hashes_pad.csv"', varn(1) clear
         shasum make, `gens' pad
         check_hashes make padded
 
-    qui import delimited `"../src/tests/make2_hashes_pad.csv"', varn(1) clear
+    qui import delimited `"${ROOT}/make2_hashes_pad.csv"', varn(1) clear
         shasum make make, `gens' pad
         check_hashes make make padded
 
@@ -74,13 +83,13 @@ program main
     disp _n(2) "{hline 80}" _n(1) "File list hashing" _n(2)
 
     clear
-    qui import delimited `"../src/tests/meta_hashes.csv"', varn(1) clear
-        shasum fname, `gens' filelist path(../src/tests/)
+    qui import delimited `"${ROOT}/meta_hashes.csv"', varn(1) clear
+        shasum fname, `gens' filelist path(${ROOT}/)
         check_hashes list of files
 
     clear
-    qui import delimited `"../src/tests/meta_hashes.csv"', varn(1) clear
-        gen fpath = "src/tests/"
+    qui import delimited `"${ROOT}/meta_hashes.csv"', varn(1) clear
+        gen fpath = "${ROOT}/"
         shasum fpath fname, `gens' filelist path(../)
         check_hashes list of paths and files
 
@@ -90,10 +99,10 @@ program main
     disp _n(2) "{hline 80}" _n(1) "File list hashing - strL" _n(2)
 
     clear
-    qui import delimited `"../src/tests/meta_hashes.csv"', varn(1) clear
+    qui import delimited `"${ROOT}/meta_hashes.csv"', varn(1) clear
         gen strL fbinary = ""
         forvalues i = 1 / `=_N' {
-            replace fbinary = fileread(`"../src/tests/`=fname[`i']'"') in `i'
+            replace fbinary = fileread(`"${ROOT}/`=fname[`i']'"') in `i'
         }
         cap noi shasum fbinary, `gens'
         if ( `c(stata_version)' < 14.1 ) {
@@ -110,7 +119,7 @@ program main
 
     clear
     local hashes md5 sha1 sha224 sha256 sha384 sha512
-    qui import delimited `"../src/tests/meta_hashes.csv"', varn(1) clear
+    qui import delimited `"${ROOT}/meta_hashes.csv"', varn(1) clear
         local files
         forvalues i = 1 / `=_N' {
             local files `files' `=fname[`i']'
@@ -124,7 +133,7 @@ program main
     foreach file of local files {
         local ++i
         disp _n(1) `"`file'"'
-        qui shasum, file(`file', `hashes') path(../src/tests/)
+        qui shasum, file(`file', `hashes') path(${ROOT}/)
         foreach hash of local hashes {
             cap noi assert `"`r(`hash')'"' == `"`h`i'_`hash''"'
             if ( _rc ) {

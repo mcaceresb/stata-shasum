@@ -1,13 +1,16 @@
 ------------------------------------------------------------------------------------------------------------
       name:  shasum_tests
-       log:  /home/mauricio/Documents/projects/dev/code/archive/2018/stata-shasum/build/tests_unix.log
+       log:  /shasum/src/tests/tests_unix.log
   log type:  text
- opened on:   9 Oct 2022, 20:59:28
+ opened on:  28 Jan 2023, 05:55:20
 
 
-Start:        20:59:28  9 Oct 2022
+Start:        05:55:20 28 Jan 2023
 OS:           Unix
 Machine Type: PC (64-bit x86-64)
+checking shasum consistency and verifying not already installed...
+installing into /home/statauser/ado/plus/...
+installation complete.
 
 
 --------------------------------------------------------------------------------
@@ -137,5 +140,3 @@ make2_hashes_pad.csv
 
 . 
 end of do-file
-
-. exit, clear

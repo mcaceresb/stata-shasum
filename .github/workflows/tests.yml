@@ -1,0 +1,31 @@
+# Run tests in Stata zomg
+
+name: tests
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
+    branches: [ master ]
+jobs:
+  build:
+    name: Run Tests in Stata
+    runs-on: [ ubuntu-latest ]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Stata Docker
+        run: |
+          echo ${{ secrets.STATA_LIC_17 }} > stata.lic
+          export VERSION=17
+          export TAG=2023-01-10
+          export MYHUBID=dataeditors
+          export MYIMG=stata${VERSION}
+          export STATALIC=$(pwd)/stata.lic
+          docker pull dataeditors/stata17:2023-01-10
+          docker run -it --rm -v "${STATALIC}":/usr/local/stata/stata.lic -v $(pwd):/shasum ${MYHUBID}/${MYIMG}:${TAG} -b do /shasum/src/tests.do
+          rm -f stata.lic
+          echo ${GITHUB_REF##*/}
+          [ -n "$(git status --porcelain)" ] && git commit -m "[Automated Commit] log file docker run"
+          git fetch
+          git push -f origin HEAD:${GITHUB_REF##*/}
