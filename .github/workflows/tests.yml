@@ -24,8 +24,11 @@ jobs:
           export MYIMG=stata${VERSION}
           export STATALIC=$(pwd)/stata.lic
           docker pull dataeditors/stata17:2023-01-10
-          docker run --rm -v "${STATALIC}":/usr/local/stata/stata.lic -v $(pwd):/shasum ${MYHUBID}/${MYIMG}:${TAG} -b do /shasum/src/tests.do
+          echo "Downloaded docker"
+          docker run -i --rm -v "${STATALIC}":/usr/local/stata/stata.lic -v $(pwd):/shasum ${MYHUBID}/${MYIMG}:${TAG} -b do /shasum/src/tests.do
+          echo "Ran Stata?"
           rm -f stata.lic
+          echo "Cleaned license"
           echo ${GITHUB_REF##*/}
           [ -n "$(git status --porcelain)" ] && git commit -m "[Automated Commit] log file docker run"
           git fetch
