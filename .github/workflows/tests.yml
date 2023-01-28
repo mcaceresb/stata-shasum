@@ -17,8 +17,8 @@ jobs:
       - name: Set up Stata Docker
         run: |
           echo ${STATA_LIC_17} > stata.lic
-          ls -laht stata.lic
           shasum stata.lic
+          ls -laht stata.lic
           export VERSION=17
           export TAG=2023-01-10
           export MYHUBID=dataeditors
@@ -27,6 +27,7 @@ jobs:
           docker pull dataeditors/stata17:2023-01-10
           echo "Downloaded docker"
           docker run -i --rm -v "${STATALIC}":/usr/local/stata/stata.lic -v $(pwd):/shasum ${MYHUBID}/${MYIMG}:${TAG} -b do /shasum/src/tests.do
+          cat src/tests/tests_unix.log
           echo "Ran Stata?"
           rm -f stata.lic
           echo "Cleaned license"
