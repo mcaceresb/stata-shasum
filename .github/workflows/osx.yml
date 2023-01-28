@@ -14,20 +14,37 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Build Plugin
+      - name: Build Plugin x86_64
         run: |
           # brew install xx
-          git clone git://git.openssl.org/openssl.git
-          cd openssl
+          git clone git://git.openssl.org/openssl.git openssl-x86_64
+          cd openssl-x86_64
           git checkout OpenSSL_1_1_1-stable
           ./Configure darwin64-x86_64-cc
           export KERNEL_BITS=64
           ./config
           make
           cd ..
-          make clean && make all LIBPATH=openssl INCLUDE=-Iopenssl/include
+          make clean && make all LIBPATH=openssl-x86_64 INCLUDE=-Iopenssl-x86_64/include EXTRA="-arch x86_64"
+          mv lib/plugin/shasum_macosx.plugin shasum_macosx.plugin.x86_64
+      - name: Build Plugin arm64
+        run: |
+          # brew install xx
+          git clone git://git.openssl.org/openssl.git openssl-arm64
+          cd openssl-arm64
+          git checkout OpenSSL_1_1_1-stable
+          ./Configure darwin64-arm64-cc
+          export KERNEL_BITS=64
+          ./config
+          make
+          cd ..
+          make clean && make all LIBPATH=openssl-arm64 INCLUDE=-Iopenssl-arm64/include EXTRA="-arch arm64"
+          mv lib/plugin/shasum_macosx.plugin shasum_macosx.plugin.arm64
       - name: Commit OSX Plugin
         run: |
+          shasum shasum_macosx.plugin.x86_64
+          shasum shasum_macosx.plugin.arm64
+          lipo -create -output lib/plugin/shasum_macosx.plugin shasum_macosx.plugin.x86_64 shasum_macosx.plugin.arm64
           shasum lib/plugin/shasum_macosx.plugin
           #
           otool -L lib/plugin/shasum_macosx.plugin

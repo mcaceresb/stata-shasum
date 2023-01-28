@@ -3,6 +3,7 @@
 
 SPI = 3.0
 CFLAGS = -Wall -O3 $(OSFLAGS)
+EXTRA=
 
 # build.py
 # src/tests.do
@@ -63,7 +64,7 @@ shasum: src/shasum.c src/spi/stplugin.c
 	mkdir -p ./build
 	mkdir -p ./lib/plugin
 	mkdir -p ./lib/openssl
-	$(GCC) $(CFLAGS) $(INCLUDE) -o $(OUT)  src/spi/stplugin.c src/shasum.c $(SSL)
+	$(GCC) $(CFLAGS) $(EXTRA) $(INCLUDE) -o $(OUT)  src/spi/stplugin.c src/shasum.c $(SSL)
 	cp lib/plugin/shasum*plugin build/
 
 .PHONY: clean
