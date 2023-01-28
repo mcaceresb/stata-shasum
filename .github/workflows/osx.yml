@@ -20,9 +20,9 @@ jobs:
           git clone git://git.openssl.org/openssl.git openssl-x86_64
           cd openssl-x86_64
           git checkout OpenSSL_1_1_1-stable
-          ./Configure darwin64-x86_64-cc
+          ./Configure darwin64-x86_64-cc shared
           export KERNEL_BITS=64
-          ./config
+          # ./config
           make
           cd ..
           make clean && make all LIBPATH=openssl-x86_64 INCLUDE=-Iopenssl-x86_64/include EXTRA="-arch x86_64"
@@ -33,9 +33,9 @@ jobs:
           git clone git://git.openssl.org/openssl.git openssl-arm64
           cd openssl-arm64
           git checkout OpenSSL_1_1_1-stable
-          ./Configure darwin64-arm64-cc
+          ./Configure enable-rc5 zlib darwin64-arm64-cc no-asm
           export KERNEL_BITS=64
-          ./config
+          # ./config
           make
           cd ..
           make clean && make all LIBPATH=openssl-arm64 INCLUDE=-Iopenssl-arm64/include EXTRA="-arch arm64"
