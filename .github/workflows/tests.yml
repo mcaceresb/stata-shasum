@@ -17,6 +17,8 @@ jobs:
       - name: Set up Stata Docker
         run: |
           echo ${{ secrets.STATA_LIC_17 }} > stata.lic
+          ls -laht stata.lic
+          head -c 10 stata.lic 
           shasum stata.lic
           export VERSION=17
           export TAG=2023-01-10
@@ -25,6 +27,7 @@ jobs:
           export STATALIC=$(pwd)/stata.lic
           docker pull dataeditors/stata17:2023-01-10
           echo "Downloaded docker"
+          docker logs --follow 
           docker run -i --rm -v "${STATALIC}":/usr/local/stata/stata.lic -v $(pwd):/shasum ${MYHUBID}/${MYIMG}:${TAG} -b do /shasum/src/tests.do
           echo "Ran Stata?"
           rm -f stata.lic
