@@ -14,13 +14,12 @@ set more off
 set varabbrev off
 set seed 1729
 set linesize 108
-global ROOT /shasum/src/tests
-* if "`c(username)'" == "statauser" {
-*     global ROOT /shasum/src/tests
-* }
-* else {
-*     global ROOT ../src/tests
-* }
+if "`c(username)'" == "statauser" {
+    global ROOT /shasum/src/tests
+}
+else {
+    global ROOT ../src/tests
+}
 
 capture program drop main
 program main
