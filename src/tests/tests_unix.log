@@ -2,10 +2,10 @@
       name:  shasum_tests
        log:  /shasum/src/tests/tests_unix.log
   log type:  text
- opened on:  28 Jan 2023, 06:08:17
+ opened on:   1 Feb 2023, 00:12:21
 
 
-Start:        06:08:17 28 Jan 2023
+Start:        00:12:21  1 Feb 2023
 OS:           Unix
 Machine Type: PC (64-bit x86-64)
 checking shasum consistency and verifying not already installed...
