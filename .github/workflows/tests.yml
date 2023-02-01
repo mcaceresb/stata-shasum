@@ -16,26 +16,28 @@ jobs:
       - uses: actions/checkout@v2
       - name: Set up Stata Docker
         run: |
-          echo "============ Setup ============"
+          echo "============       Setup        ============"
           echo ${STATA_LIC_17} > stata.lic
           shasum stata.lic
           ls -laht stata.lic
           rm -f src/tests/tests_unix.log
           chmod a+rwX src src/tests
-          echo "============ Downloadng Docker ============"
+          echo "============  Downloadng Docker ============"
           export VERSION=17
           export TAG=2023-01-10
           export MYHUBID=dataeditors
           export MYIMG=stata${VERSION}
           export STATALIC=$(pwd)/stata.lic
           docker pull dataeditors/stata17:2023-01-10
-          echo "============ Running Tests ============"
+          echo "============    Running Tests   ============"
           docker run --rm -v ${STATALIC}:/usr/local/stata/stata.lic -v $(pwd):/shasum ${MYHUBID}/${MYIMG}:${TAG} -b /shasum/src/tests.do
-          echo "============ Check Run ============"
+          echo "============      Check Run     ============"
           cat src/tests/tests_unix.log
-          echo "============ Cleaning License ============"
+          echo "============  Cleaning License  ============"
           rm -f stata.lic
           echo "============ Committing Changes ============"
+          git config --global user.name 'Mauricio Caceres'
+          git config --global user.email 'mauricio.caceres.bravo@gmail.com'
           echo ${GITHUB_REF##*/}
           [ -n "$(git status --porcelain)" ] && git commit -a -m "[Automated Commit] log file docker run"
           git fetch
